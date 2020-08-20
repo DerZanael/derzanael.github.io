@@ -24,7 +24,7 @@ const cases = [
     },
     {
         //up left
-        type: "societe",
+        type: "shig",
         dir: "right"
     },
     {
@@ -45,7 +45,7 @@ const cases = [
     },
     {
         //up right
-        type:"societe",
+        type:"shig",
         dir: "down"
     },
     {
@@ -66,7 +66,7 @@ const cases = [
     },
     {
         //bottom right
-        type: "societe",
+        type: "shig",
         dir: "left"
     },
     {
