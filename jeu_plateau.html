@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr-fr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Cool jeu de plateau</title>
+        <script src="js/gestion_relation.js"></script>
+        <script src="js/cases.js"></script>
+        <script src="js/cartes_chance.js"></script>
+        <script src="js/cartes_question.js"></script>
+        <script src="js/cartes_societe.js"></script>
+        <link rel="stylesheet" href="css/styles.css">
+        <style type="text/css">
+            .test {
+                border:1px solid black;
+                height:100vh;
+                width:100vh;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="plateau">
+            <div id="pion"></div>
+            <div id="de"></div>
+            <div id="clickme">Cliquez-moi !</div>
+        </div>
+
+        <div id="modal-dice" class="modal">
+            <div class="modal-content modal-affiche-de">
+                <div class="dice-display roll-displayed" id="dice-roll"><img src="images/de-loading.gif" title="Rolling dice" alt="Dé"></div>
+                <div class="dice-display roll-hidden" id="dice-1"><img src="images/de_result_1.png" title="Res" alt="Res"></div>
+                <div class="dice-display roll-hidden" id="dice-2"><img src="images/de_result_2.png" title="Res" alt="Res"></div>
+                <div class="dice-display roll-hidden" id="dice-3"><img src="images/de_result_3.png" title="Res" alt="Res"></div>
+                <div class="dice-display roll-hidden" id="dice-4"><img src="images/de_result_4.png" title="Res" alt="Res"></div>
+                <div class="dice-display roll-hidden" id="dice-5"><img src="images/de_result_5.png" title="Res" alt="Res"></div>
+                <div class="dice-display roll-hidden" id="dice-6"><img src="images/de_result_6.png" title="Res" alt="Res"></div>
+            </div>
+        </div>
+
+        <div id="modal-carte" class="modal display-troide">
+            <div class="modal-content modal-affiche-question">
+                <div class="question-front"></div>
+                <div class="question-back"></div>
+            </div>
+        </div>
+        <div style="display:none" id="modele-question">
+            <p>#question#</p>
+            <ul>#reponses#</ul>
+            <div>
+                <button type="button" class="repondre" id="#repondre_id#">Répondre</button>
+                <button type="button" class="repondre btn-roll" id="#roll_next#">Continuer</button>
+            </div>
+        </div>
+
+        <div id="modal-endgame" class="modal">
+            <div class="modal-content modal-affiche-endgame">
+                <div class="modal-inner">
+                    <p class="lead">Parcours terminé !</p>
+                    <p class="muted">Vous avez répondu correctement à <span id="nbgood"></span> sur <span id="nbquest"></span> questions</p>
+                    <p>Vous avez terminé le maillon <em>Gestion et Relation Client</em>, vous pouvez avancer vers la suite du parcours, bonne chance ;)</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="logo"></div>
+                    <a href="javascript:void(0);" class="btn-finparcours" id="endgame" title="Accéder à la suite du parcours">Suite du parcours</a>
+                </div>
+            </div>
+        </div>
+
+        <script language="javascript">
+            const debug = false;
+            let dice_clickable = true;
+            let hasjoker = false;
+            const de = document.getElementById("de");
+            const pion = document.getElementById("pion");
+            let nbgood = 0;
+            let nbquest = 0;
+            document.addEventListener("DOMContentLoaded", function(){
+                de.addEventListener("click", function() { //Clic sur le dé
+                    if(dice_clickable) { //On a le droit de cliquer
+                        document.getElementById("clickme").style.display = "none"; //On enleve la popover
+                        dice_clickable = false; //On peut plus cliquer
+                        flow(); //Flow roll > avance > question
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
