@@ -1,4 +1,4 @@
-const cartes_societe = [
+const cartes_shig = [
     {
         question:"Quelles sont les technos utilisées par Shig ?",
         reponses: [
@@ -66,5 +66,5 @@ const cartes_societe = [
     }
 ];
 
-let discard_societe = [];
-let pile_societe = duplicArray(cartes_societe);
+let discard_shig = [];
+let pile_shig = duplicArray(cartes_shig);
