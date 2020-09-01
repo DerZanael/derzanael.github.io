@@ -69,7 +69,7 @@ const questions = [
     {
         question: "Qui est bien en forme ?",
         attendu: [
-            "cdpred", "riot", "respawn",
+            "cdpred", "riot", "respawn", "capcom"
         ]
     },
     {
