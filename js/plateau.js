@@ -1,27 +1,4 @@
-//Duplique un array et le mélange au passage
-function duplicArray(a) {
-    return melange(JSON.parse(JSON.stringify(a)));
-}
-//Shuffle sur un array
-function melange(a) {
-    for(let i = a.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * i)
-        const temp = a[i]
-        a[i] = a[j]
-        a[j] = temp
-    }
-    return a;
-}
-function sleep(ms) {
-    ms = ms * 1000;
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-//Roll le dé et retourne le résultat
-function roll () {
-	return Math.ceil((Math.floor(Math.random() * 10) + 1) * 0.6); //Résultat de 1 à 10, multiplié par 0.6, arrondi à l'entier supérieur
-}
-
+//Fonction principale : lancer de dé, affichage, déplacement, question
 async function flow() {
     rolla = roll();
     //Animation du roll
@@ -162,7 +139,7 @@ async function askQuestion() {
     const modal_inner = document.querySelector("#modal-carte .modal-affiche-question");
     const front = document.querySelector("#modal-carte .modal-affiche-question .question-front");
     const back = document.querySelector("#modal-carte .modal-affiche-question .question-back");
-    const txts = {"chance": "chance", "question": "questions", "shig": "El Shig"};
+    const txts = {"chance": "chance", "question": "questions", "societe": "société"};
     front.innerHTML = "<img src='images/media_"+type+".png' alt='"+type.toUpperCase()+"'><span class='deco-"+type+"'>"+txts[type].toUpperCase()+"</span>";
     back.innerHTML = "<p>"+question.question+"</p>";
     modal.style.display = "block";
@@ -179,8 +156,7 @@ async function askQuestion() {
         if(typeof question.bonus !== "undefined") {
             switch(question.bonus) {
                 case "hasjoker":
-                    hasjoker = true;
-                    dice_clickable = true
+                    activeJoker();
                     break;
                 case "diceroll-neg": 
                     let val = roll();
