@@ -1,30 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
-
-$violet : #581d74;
-$violetsoft: #e5d0e7;
-$violetfonce: #330449;
-$vertsoft: #e1ffe0;
-$vertfonce: #2c8029;
-
-$couleurchance: #d14984;
-$couleurquestion: #bd8abe;
-$couleursociete: #59227f;
-
-html, body {
-    margin:0;
-    padding:0;
-    position:relative;
-    // width:100vw;
-    // height:100vh;
-}
-* {
-    box-sizing: border-box;
-}
-body {
-    font-family: "Open Sans", sans-serif;
-    font-size: 2vh;
-    color: $violet;
-}
+@import "commun";
 
 #plateau {
     position:relative;
@@ -72,6 +46,7 @@ $pion_anim: 0.5s;
 }
 
 #clickme {
+    cursor: pointer;
     position:absolute;
     top: calc(5 * (100vh / 6) - 7vh);
     left:50%;
@@ -109,125 +84,34 @@ $pion_anim: 0.5s;
       }
 }
 
-/* The Modal (background) */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 50; /* Sit on top */
-    left: 0;
-    top: 0;
-    bottom:0px;
-    right:0px;
-    width: 100vw; /* Full width */
-    height: 100vh; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.2); /* Black w/ opacity */
-  }
-  
-  /* Modal Content/Box */
-  .modal-content {
-    position:relative;
-    background-color: #fefefe;
-    margin: 50vh auto 0 auto;
-    transform: translateY(-50%);
-    padding: 20px;
-    border: 0;
-    text-align:center;
-    border-radius: 20px;
-    box-shadow: 5px 5px 16px -6px rgba(0,0,0,0.46);
 
-    &.modal-affiche-de {
-        width: calc((100vh / 4) + 40px); /* Could be more or less, depending on screen size */
-        animation-name: animatebot;
-        animation-duration: 0.4s
-    }
-    
-    &.modal-affiche-question {
-        width: calc(16vh * 4);
-        height: calc(9vh * 4);
-        padding:0px;
-        transition: transform 1s, width $pion_anim, height $pion_anim;
-        transform-style: preserve-3d;
-        animation-name: animateleft;
-        animation-duration:0.4s;
-        &.flipped {
-            transform: translateY(-50%) rotateY(180deg);
-            &.is-flipped {
-                width:calc(16vh * 6);
-                height: calc(9vh * 6);
-                // height:auto;
-            }
+    & .modal-content {
+        &.modal-affiche-de {
+            width: calc((100vh / 4) + 40px); /* Could be more or less, depending on screen size */
+            animation-name: animatebot;
+            animation-duration: 0.4s
         }
-    }
-
-    &.modal-affiche-endgame {
-        border-radius:0px;
-        width: calc(16vh * 5);
-        height: calc(9vh * 5);
-        padding:0px;
-        display:flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        align-items:stretch;
-        animation-name: animatetop;
-        animation-duration: 0.5s;
-
-        & .modal-inner {
-            padding:20px;
-            flex-grow: 1;
-            display:flex;
-            flex-direction: column;
-            justify-content:center;
-            align-items:stretch;
-        }
-        & .modal-footer {
-            flex-grow:0;
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: stretch;
-            & .logo {
-                width: 20vh;
-                background: transparent url("../images/logo.png") left center no-repeat;
-                background-size:contain;
-                margin-left: 2vh;
-            }
-            & .btn-finparcours {
-                padding: 2vh 5vh;
-                font-size:2vh;
-                background-color: $violet;
-                color: white;
-                border: 0.5vh solid transparent;
-                text-transform: uppercase;
-                transition: all 0.2s;
-                text-decoration:none;
-                &:hover {
-                    background-color: $violetsoft;
-                    border-color: $violet;
-                    color: $violet;
+        
+        &.modal-affiche-question {
+            width: calc(16vh * 4);
+            height: calc(9vh * 4);
+            padding:0px;
+            transition: transform 1s, width $pion_anim, height $pion_anim;
+            transform-style: preserve-3d;
+            animation-name: animateleft;
+            animation-duration:0.4s;
+            &.flipped {
+                transform: translateY(-50%) rotateY(180deg);
+                &.is-flipped {
+                    width:calc(16vh * 6);
+                    height: calc(9vh * 6);
+                    // height:auto;
                 }
             }
         }
     }
-  }
-
-  /* Add Animation */
-  @keyframes animatebot {
-    from {bottom: -300px; opacity: 0}
-    to {bottom: 0; opacity: 1}
-  }
-
-  @keyframes animateleft {
-      from {left:-100vh; opacity: 0}
-      to {left:0; opacity: 1}
-  }
-
-@keyframes animatetop {
-    from {top: -100vh; opacity: 0}
-    to { top:0; opacity: 1;}
 }
-
   /* Les dés */
   .dice-display {
       & img {
@@ -362,28 +246,4 @@ $pion_anim: 0.5s;
 .label-neutre {
     color: gray;
     font-weight:normal;
-}
-.lead {
-    text-align: center;
-    font-size: 2em;
-}
-.muted {
-    font-size:0.8em;
-    color: gray;
-    font-style:italic;
-}
-#nbgood {
-    color: $vertfonce;
-    font-weight:bold;
-    font-size: 1.2em;
-}
-#nbquest {
-    color: $violet;
-    font-weight: bold;
-    font-size: 1.2em;
-}
-
-.is-blur {
-    -webkit-filter: blur(1vh);
-    filter: blur(1vh);
 }
