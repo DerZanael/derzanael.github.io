@@ -102,7 +102,7 @@ const pool_reponses = {
         type: "dev"
     },
     "yakuza": {
-        reponse: "RRG Studios",
+        reponse: "RGG Studios",
         type: "dev"
     },
     "respawn": {
