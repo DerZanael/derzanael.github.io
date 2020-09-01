@@ -1,0 +1,359 @@
+@import "commun";
+@import "timer";
+
+
+#background {
+    position:absolute;
+    top:0px;
+    left:0px;
+    bottom:0px;
+    right:0px;
+    z-index:1;
+    background:transparent url("../images/bg-conception.jpg") center center no-repeat;
+    background-size:cover;
+}
+
+#plateau {
+    z-index:2;
+    width:100vh;
+    height:100vh;
+    margin:0px auto;
+    padding:0px;
+    position:relative;
+    border:1px solid white;
+}
+
+$transfocarte: translateX(-50%) scale(0.75);
+$angle: 15deg;
+$cartemg: $transfocarte rotate(-$angle);
+$cartemd: $transfocarte rotate($angle);
+.carte {
+    background:$violet url(../images/fond-carte.png) center center no-repeat;
+    background-size:cover;
+    width: calc(9vh * 2.5);
+    height: calc(16vh * 2);
+    border-radius:3vh;
+    padding:1.5vh;
+    position:absolute;
+    left: 50%;
+    transform: $transfocarte;
+    top: 2vh;
+    display:flex;
+    flex-direction:column;
+    justify-content: center;
+    align-items: center;
+    & .inner, & .disp-result {
+        flex-grow:1;
+        border-radius:3vh;
+        height:100%;
+        width:100%;
+        color:white;
+        text-transform:uppercase;
+    }
+    & .inner {
+        background: rgba(white, 0.8) url(../images/logo.png) center center no-repeat;
+        background-size:contain;
+    }
+    & .disp-result {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 1.5em;
+        animation: opacite 0.5s ease-in-out;
+    }
+}
+
+.main-container {
+    z-index:5;
+    position:absolute;
+    top:5vh;
+    width:30vh;
+    height: 50vh;
+    // border: 1px solid blue;
+    perspective: 1000px;
+    transition: all 0.5s ease-in-out;
+    & .main {
+        position: absolute;
+        bottom:10%;
+        width:100%;
+        height:30%;
+        // border: 1px solid blue;
+        z-index:6;
+    }
+    & .carte {
+        z-index: 7;
+    }
+    &.result {
+        top: 8vh;
+        transform: scale(1.1);
+    }
+}
+
+#mg {
+    left: 5vh;
+    & .main {
+        background:transparent url(../images/main-gauche.png) center center no-repeat;
+        background-size: contain;
+    }
+    & .carte {
+        transform: $cartemg;
+    }
+    &.idle {
+        animation: floatmg 10s ease-in-out infinite;
+        & .main {
+            animation: floatmd 6s ease-in-out infinite;
+        }
+        & .carte {
+            animation: rotatecartemg 5s ease-in-out infinite;
+        }
+    }
+    &.result {
+        left: 8vh;
+        &.loading {
+            & .carte {
+                animation: rotatefastmg 0.5s linear infinite;
+            }
+        }
+        &.hl {
+            left: 10vh;
+            transform: scale(1.5);
+        }
+    }
+}
+
+#md {
+    right: 5vh;
+    & .main {
+        background:transparent url(../images/main-droite.png) center center no-repeat;
+        background-size: contain;
+        // border-color: red;
+    }
+    & .carte {
+        transform: $cartemd;
+    }
+    &.idle {
+        animation: floatmd 10s ease-in-out infinite;
+        & .main {
+            animation: floatmg 6s ease-in-out infinite;
+        }
+        & .carte {
+            animation: rotatecartemd 7s ease-in-out infinite;
+        }
+    }
+    &.result {
+        right: 8vh;
+        &.loading {
+            & .carte {
+                animation: rotatefastmd 0.5s linear infinite;
+            }
+        }
+        &.hl {
+            right: 10vh;
+            transform: scale(1.5);
+        }
+    }
+}
+
+@keyframes floatmg {
+    0% { transform: translateY(0vh); }
+    50% { transform: translateY(-3vh); }
+    100% { transform: translateY(0vh); }
+}
+
+@keyframes floatmd {
+    0% { transform: translateY(-3vh); }
+    50% { transform: translateY(0vh); }
+    100% { transform: translateY(-3vh); }
+}
+
+@keyframes rotatecartemg {
+    0% { transform: $cartemg rotateY(0deg); }
+    50% { transform: $cartemg rotateY(0deg); }
+    75% { transform: $cartemg rotateY(180deg); }
+    100% { transform: $cartemg rotateY(360deg); }
+}
+
+@keyframes rotatecartemd {
+    0% { transform: $cartemd rotateY(0deg); }
+    50% { transform: $cartemd rotateY(0deg); }
+    75% { transform: $cartemd rotateY(180deg); }
+    100% { transform: $cartemd rotateY(360deg); }
+}
+
+@keyframes rotatefastmg {
+    0% { transform: $cartemg rotateY(0deg); }
+    100% { transform: $cartemg rotateY(360deg); }
+}
+
+@keyframes rotatefastmd {
+    0% { transform: $cartemd rotateY(0deg); }
+    100% { transform: $cartemd rotateY(360deg); }
+}
+
+#question {
+    position:absolute;
+    top: 50%;
+    left:50%;
+    transform: translateX(-50%) translateY(-50%);
+    width:0;
+    height: 5px;
+    overflow: hidden;
+    background-color:rgba(white, 0.9);
+    display: none;
+    z-index: 15;
+    transition: all 0.5s;
+    &.anim {
+        animation: animquestion 1s ease-in-out forwards;
+    }
+    &.opened {
+        height:auto;
+        display:flex !important;
+        flex-direction: column;
+        justify-content: start;
+        align-items: stretch;
+        & .question-inner {
+            padding: 3vh;
+            display:flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            & #timer-reponse {
+                flex-grow: 0;
+            }
+            & p {
+                margin:0;
+                text-align:center;
+                flex-grow: 1;
+            }
+            & ul > li:not(:last-child) {
+                margin-bottom: 1vh;
+            }
+            &.resultat {
+                flex-direction: column;
+                align-items: stretch;
+                font-size: 1.5vh;
+                & p {
+                    text-align: left;
+                }
+            }
+        }
+        & .question-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: stretch;
+            & .legende {
+                padding: 1vh;
+                color: white;
+                font-size:0.5em;
+                display:flex;
+                justify-content: center;
+                align-items:center;
+                max-width:15%;
+                text-align:center;
+            }
+            & .btn-check-reponse, & .btn-next {
+                position:relative;
+                display: block;
+                cursor: pointer;
+                font-size:2vh;
+                text-transform: uppercase;
+                padding: 1.5vh 3vh;
+                color: white;
+                background-color: $vertfonce;
+                border:0.5vh solid $vertfonce;
+                animation: questionfooter 0.5s ease-in-out;
+                transition: all 0.2s;
+                margin-left:auto;
+                &:hover {
+                    color: $vertfonce;
+                    background-color: $vertsoft;
+                }
+                &:disabled {
+                    opacity: 0.5;
+                    cursor:not-allowed;
+                }
+            }
+            & .btn-next {
+                background-color: $violet;
+                border-color: $violet;
+                display:none;
+                &:hover {
+                    color: $violet;
+                    background-color: $violetsoft;
+                }
+            }
+        }
+    }
+}
+@keyframes animquestion {
+    from { width:0%; opacity: 0; height: 1px; }
+    to { width: 80%; }
+}
+@keyframes questionfooter {
+    from { opacity:0; right: -25vh; }
+    to { opacity:1; right: 0; }
+}
+
+#pool-cartes {
+    z-index: 10;
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height: 50%;
+    overflow: hidden;
+    & .carte-reponse {
+        position:absolute;
+        top: 50%;
+        width: calc(9vh * 2.5);
+        height: calc(16vh * 2);
+        padding: 1vh;
+        background-color: white;
+        border: 1vh solid white;
+        border-radius: 2vh;
+        box-shadow: 0 0 1vh 1vh rgba(black, 0.2);
+        display:flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items:center;
+        transform-origin: bottom left;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        overflow-wrap: break-word;
+        hyphens: manual;
+        &.showed {
+            animation: animatebot 1s ease-in-out forwards;
+        }
+        &:not(.disabled):hover, &.selected {
+            z-index: 25 !important;
+            box-shadow: 0 0 1vh 1vh rgba($violet, 0.5);
+            top: 30%;
+        }
+        &.selected {
+            border: 1vh solid $violet !important;
+        }
+        & .reponse {
+            text-align: center;
+            text-transform: uppercase;
+        }
+    }
+    &.finish {
+        display:flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items:center;
+        & .carte-reponse {
+            position:relative !important;
+            top:30% !important;
+            left:0 !important;
+            margin: 0 1vh;
+        }
+    }
+}
+
+@keyframes opacite {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
