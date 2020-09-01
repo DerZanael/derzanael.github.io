@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr-fr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Super cool jeu de cartes</title>
+        <script src="js/commun.js"></script>
+        <script src="js/timer.js"></script>
+        <script src="js/pool_conception.js"></script>
+        <script src="js/conception.js"></script>
+        <link rel="stylesheet" href="css/styles-cartes.css">
+    </head>
+    <body>
+
+        <a href="javascript:void(0);" id="joker" class="btn-joker">
+            <span class="joker-base">Joker !</span>
+            <span class="joker-long"><span class="joker-long-text">Appelez le 0123 456 789</span> <span class="joker-dismiss">J'ai fini</span></span>
+        </a>
+
+        <div id="background"></div>
+        <div id="plateau">
+            <div id="question"></div>
+            <div id="mg" class="main-container idle">
+                <div class="carte">
+                    <div class="inner"></div>
+                </div>
+                <div class="main"></div>
+            </div>
+            <div id="md" class="main-container idle">
+                <div class="carte">
+                    <div class="inner"></div>
+                </div>
+                <div class="main"></div>
+            </div>
+            <div id="pool-cartes"></div>
+        </div>
+
+        <div id="modal-endgame" class="modal">
+            <div class="modal-content modal-affiche-endgame">
+                <div class="modal-inner">
+                    <p class="lead">Parcours terminé !</p>
+                    <p class="muted">Vous avez répondu correctement à <span id="nbgood"></span> sur <span id="nbquest"></span> questions</p>
+                    <p>Vous avez terminé le <em>Super jeu de cartes</em>, vous pouvez continuer votre vie, bonne chance ;)</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="logo"></div>
+                    <a href="javascript:void(0);" class="btn-finparcours" id="endgame" title="Accéder à la suite du parcours">Suite du parcours</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-demarrer" class="modal">
+            <div class="modal-content modal-affiche-endgame">
+                <div class="modal-inner" style="font-size: 0.7em; text-align:left;">
+                    <p class="lead">Super jeu de cartes</p>
+                    <p>Pour ce jeu, une série de questions va vous être posée, pour chaque question vous aurez <strong style="color: var(--rouge);">45 secondes</strong> pour valider votre réponse.</p>
+                    <p>Vous aurez en main un groupe de cartes de différents acteurs internes et externes au jeu vidéo. Les cartes pourront avoir un fond coloré en fonction des différentes familles d'acteurs, une légende sera présente dans ce cas-là.</p>
+                    <p>Sélectionnez <strong style="color: var(--vert);">une à plusieurs cartes</strong> pour répondre à la question posée.</p>
+                    <p><em>Bon courage ! ;)</em></p>
+                </div>
+                <div class="modal-footer">
+                    <div></div>
+                    <button type="button" class="btn-demarrer" id="btn-start" title="Démarrer le parcours">Prêt&bull;e ? Démarrez !</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modele-vrai" style="display:none"></div>
+        <div id="modele-faux" style="display:none"></div>
+        <div id="modele-question" style="display:none;">
+            <div class="question-inner">
+                <div id="timer-reponse"></div>
+                <p>#question#</p>
+            </div>
+            <div class="question-footer">
+                    <button id="#id_btn_next#" class="btn-next" type="button" disabled>Question suivante</button>
+                    <button id="#id_btn_repondre#" class="btn-check-reponse" type="button" disabled>Répondre</button>
+            </div>
+        </div>
+
+        <script language="javascript">
+            const debug = false;
+            let hasjoker = false;
+            
+            const mg = document.getElementById("mg");
+            const md = document.getElementById("md");
+            const poolc = document.getElementById("pool-cartes");
+            const dquest = document.getElementById("question");
+            const btn_check = document.getElementById("btn-check");
+            const modal_start = document.getElementById("modal-demarrer");
+
+            document.addEventListener("DOMContentLoaded", function(){
+                //tireQuestion();
+                document.getElementById("plateau").classList.add("is-blur");
+                modal_start.style.display = "block";
+                document.getElementById("btn-start").addEventListener("click", function(){
+                    tireQuestion();
+                });
+            });
+        </script>
+    </body>
+</html>
