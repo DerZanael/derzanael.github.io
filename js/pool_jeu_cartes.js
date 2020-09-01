@@ -126,7 +126,7 @@ const pool_reponses = {
         type: "dev"
     },
 
-    //NATIXIS
+    //EDITEURS
     "nintendo": {
         reponse: "Nintendo",
         type: "publish"
