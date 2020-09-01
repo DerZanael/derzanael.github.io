@@ -1,0 +1,60 @@
+$timer_width: 8vh;
+$timer_stroke: 0.5vh;
+$timer_text: 2vh;
+.base-timer {
+  position: relative;
+  width: $timer_width;
+  height: $timer_width;
+  animation: slideinleft 1.5s ease-in-out;
+}
+@keyframes slideinleft {
+    from { left: -25vh; }
+    to { left: 0; }
+}
+
+.base-timer__svg {
+  transform: scaleX(-1);
+}
+
+.base-timer__circle {
+  fill: none;
+  stroke: none;
+}
+
+.base-timer__path-elapsed {
+  stroke-width: $timer_stroke;
+  stroke: grey;
+}
+
+.base-timer__path-remaining {
+  stroke-width: $timer_stroke;
+  stroke-linecap: butt;
+  transform: rotate(90deg);
+  transform-origin: center;
+  transition: 1s linear all;
+  fill-rule: nonzero;
+  stroke: currentColor;
+}
+
+.base-timer__path-remaining.green {
+  color: rgb(65, 184, 131);
+}
+
+.base-timer__path-remaining.orange {
+  color: orange;
+}
+
+.base-timer__path-remaining.red {
+  color: red;
+}
+
+.base-timer__label {
+  position: absolute;
+  width: $timer_width;
+  height: $timer_width;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $timer_text;
+}
