@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+    <head>
+        <!-- bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <!-- boxicons -->
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <!-- fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+        <style type="text/css">
+body {
+    font-family: "Open Sans", sans-serif;
+}
+.suiko-title {
+    font-family: "Amarante", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+        </style>
+    </head>
+    <body class="bg-secondary">
+        <div class="container bg-white">
+            <div class="d-flex justify-content-between align-items-center w-100 my-3 py-2 sticky-top bg-white" style="z-index:5;">
+                <h1 class="h3 suiko-title">Suikoden character list</h1>
+                <form name="fsearch" method="post" action="" class="small d-flex justify-content-end align-items-center">
+                    <div class="flex-grow-1 me-3" id="search-radios"></div>
+                    <div class="input-group w-25">
+                        <input type="text" id="search-char" class="form-control border-info" placeholder="Search character" aria-label="Search character" aria-describedby="search-addon">
+                        <button class="btn btn-info" type="button" id="search-addon"><i class='bx bx-search-alt-2'></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col-8" id="list" style="z-index: 1;"></div>
+                <div class="col-4" id="form-wrapper" style="z-index: 2;">
+                    <div class="sticky-top py-5">
+                        <h2 class="h4 suiko-title mb-3 pt-3 formtitle">New character</h2>
+                        <form name="newchar" method="post" action="">
+                            <input type="hidden" name="id" value="">
+                            <input type="hidden" name="imgstring" value="">
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="name" class="form-control" id="char-name" placeholder="Character name" required>
+                                <label for="char-name">Character name</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="location" class="form-control" id="char-location" placeholder="Character location" required>
+                                <label for="char-location">Character location</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <textarea name="description" id="char-description" class="form-control" placeholder="Character description / notes"></textarea>
+                                <label for="char-name">Description / notes</label>
+                            </div>
+
+                            <div id="form-radios" class="mb-3"></div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="btnicon"><i class="bx bx-plus"></i></span> <span class="btntxt">Add character</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script language="javascript">
+//storage for the characters
+const storage = window.localStorage;
+//page elements
+const thelist = document.querySelector("#list");
+const theform = document.querySelector("form[name='newchar']");
+const thesearch = document.querySelector("#search-char");
+const addon_thesearch = document.querySelector("#search-addon");
+const form_radios = document.querySelector("#form-radios");
+const search_radios = document.querySelector("#search-radios");
+
+//character types definition
+const char_defs = {
+    random: {
+        key: "RAND",
+        str: "Other",
+        color: "info",
+    },
+    recruitable: {
+        key: "RECB",
+        str: "Recruitable ?",
+        color: "warning",
+    },
+    recruited: {
+        key: "RECD",
+        str: "Recruited",
+        color: "success",
+    },
+    enemy: {
+        key: "ENE",
+        str: "Antagonist",
+        color: "danger",
+    },
+};
+const char_def_defaut = "RAND";
+
+document.addEventListener("DOMContentLoaded", evt=>{
+    //load from storage on page load
+    thesearch.value = ""; //set search to null
+    emptyForm(); //reset form
+    genRadios(); //generate search and form radios
+    displayChars(); //display character list from storage
+
+    //block search form submit
+    document.querySelector("form[name='fsearch']").addEventListener("submit", subevt => {
+        subevt.preventDefault();
+    });
+    //search radio events renders character list
+    search_radios.querySelectorAll("input[type='radio']").forEach(elem => {
+        elem.addEventListener("change", chevt => {
+            displayChars();
+        });
+    });
+    //doing search
+    thesearch.addEventListener("keyup", typeevt=>{
+        displayChars();
+        let icon = (thesearch.value.length > 0) ? "bx-x-circle" : "bx-search"; 
+        addon_thesearch.innerHTML = "<i class='bx "+icon+"'></i>";
+    });
+    //reset search
+    addon_thesearch.addEventListener("click", clickevent=>{
+        thesearch.value = "";
+        addon_thesearch.innerHTML = "<i class='bx bx-search'></i>";
+        displayChars();
+    });
+
+    //submit event on the form
+    theform.addEventListener("submit", subevt=>{
+        subevt.preventDefault();
+        storeChar();
+    });
+
+    document.addEventListener("click", clickevt => {
+        let targ = clickevt.target;
+        if(targ instanceof SVGPathElement || targ instanceof SVGElement || targ instanceof SVGAnimateElement || targ.classList.contains("bx")) targ = targ.closest("button, a");
+        if(targ && targ.classList.contains("edit-character") && targ.getAttribute("data-id")) {
+            loadChar(targ.getAttribute("data-id"));
+        }
+    });
+});
+
+//resets the form
+const emptyForm = () => {
+    document.querySelector(".formtitle").innerHTML = "New character";
+    document.querySelector(".btnicon").innerHTML = "<i class='bx bx-plus'></i>";
+    document.querySelector(".btntxt").innerHTML = "Add character";
+    theform.querySelector("input[name='name']").value = "";
+    theform.querySelector("input[name='location']").value = "";
+    theform.querySelector("textarea[name='description']").value = "";
+    theform.querySelectorAll("input[type='radio']").forEach(rad => {
+        rad.checked = (rad.value == char_def_defaut);
+    });
+}
+
+//create radio inputs for character status
+const genRadios = () => {
+    let wrap_all = document.createElement("div");
+    wrap_all.classList.add("form-check", "form-check-inline");
+    let radio_all = document.createElement("input");
+    radio_all.type = "radio";
+    radio_all.classList.add("form-check-input");
+    radio_all.name = "status";
+    radio_all.id = "status_search_ALL";
+    radio_all.value = "ALL";
+    radio_all.checked = true;
+    let label_all = document.createElement("label");
+    label_all.setAttribute("for", "status_search_ALL");
+    label_all.classList.add("form-check-label");
+    label_all.innerHTML = "All characters";
+    wrap_all.appendChild(radio_all);
+    wrap_all.appendChild(label_all);
+    search_radios.appendChild(wrap_all);
+
+    for([key, data] of Object.entries(char_defs)) {
+        //wrappers creation
+        let wrap_form = document.createElement("div");
+        wrap_form.classList.add("form-check");
+        let wrap_search = wrap_form.cloneNode();
+        wrap_search.classList.add("form-check-inline");
+
+        //inputs
+        let id_form = "status_form_"+data.key;
+        let id_search = "status_search_"+data.key;
+        let input_form = document.createElement("input");
+        input_form.type = "radio";
+        input_form.classList.add("form-check-input");
+        input_form.value = data.key;
+        input_form.name = "status";
+        let input_search = input_form.cloneNode();
+        //overcharge IDs
+        if(data.key == char_def_defaut) input_form.checked = true;
+        input_form.id = id_form;
+        input_search.id = id_search;
+
+        //labels
+        let label_form = document.createElement("label");
+        label_form.classList.add("form-check-label", "text-"+data.color);
+        label_form.innerHTML = data.str;
+        let label_search = label_form.cloneNode(true);
+        //overcharge IDs/for
+        label_form.setAttribute("for", id_form);
+        label_search.setAttribute("for", id_search);
+
+        wrap_form.appendChild(input_form);
+        wrap_form.appendChild(label_form);
+
+        wrap_search.appendChild(input_search);
+        wrap_search.appendChild(label_search);
+
+        form_radios.appendChild(wrap_form);
+        search_radios.appendChild(wrap_search);
+    }
+}
+
+//Stores character into storage
+const storeChar = () => {
+    let elemid = (fetchval("id") !== "") ? fetchval("id") : storage.length + 1; //bleh, needs to be better
+    let data = {
+        id: elemid,
+        img: fetchval("imgstring"),
+        name: fetchval("name"),
+        location: fetchval("location"),
+        description: fetchval("description"),
+        status: fetchval("status"),
+    }
+    storage.setItem(elemid, JSON.stringify(data));
+    emptyForm();
+    displayChars();
+};
+
+const fetchval = (entry) => {
+    //Need to find the correct option for status
+    if(entry == "status") {
+        let val = null;
+        theform.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) val = elem.value; return true; });
+        return val;
+    }
+
+    let elem = theform.querySelector("[name='"+entry+"']");
+    return (elem) ? elem.value : null;
+};
+
+//Loads a character into the form
+const loadChar = (id) => {
+    let char = storage.getItem(id);
+    if(char) {
+        let data = JSON.parse(char);
+        document.querySelector(".formtitle").innerHTML = "Edit character";
+        document.querySelector(".btnicon").innerHTML = "<i class='bx bx-cog'></i>";
+        document.querySelector(".btntxt").innerHTML = "Edit character";
+        theform.querySelector("input[name='id']").value = data["id"];
+        theform.querySelector("input[name='imgstring']").value = data["img"];
+        theform.querySelector("input[name='name']").value = data["name"];
+        theform.querySelector("input[name='location']").value = data["location"];
+        theform.querySelector("textarea[name='description']").value = data["description"];
+        form_radios.querySelectorAll("input[type='radio']").forEach(elem => elem.checked = (elem.value == data["status"]));
+    }
+}
+
+//Refreshs the character list
+const displayChars = () => {
+    thelist.innerHTML = "";
+    let nb = 0;
+
+    //search info
+    let search_val = thesearch.value;
+    let reg = (search_val != "") ? new RegExp(search_val.toLowerCase(), "gi") : null; //regular exp to match
+    let status_val = null;
+    search_radios.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) status_val = elem.value; }); //chosen status
+
+    if(storage.length == 0) {
+        thelist.innerHTML = "<p class='alert alert-warning'><strong>No character entry found</strong><br>Get to work Endy!</p>";
+    }
+    else {
+        //loop on characters
+        retrieveList().forEach(data => {
+            let select = true; //by default the character will be displayed
+            if(reg !== null && !data["name"].toLowerCase().match(reg)) select = false; //unless they don't match the search
+            if(status_val != "" && status_val != "ALL" && data["status"] != status_val) select = false; //unless they don't match status 
+            if(select) {
+                nb++;
+                charFrame(data);
+            }
+        });
+        if(nb == 0) {
+            thelist.innerHTML = "<p class='alert alert-warning'><strong>No match found</strong></p>";
+        }
+    }
+};
+
+//Retrieves character list in alphabetical order with decoded data
+const retrieveList = () => {
+    let arr = [];
+    for([key, item] of Object.entries(storage)) {
+        arr.push(JSON.parse(item));
+    }
+    arr.sort(sortName());
+    return arr;
+};
+//sorts on a property
+const sortName = () => {  
+   return function(a,b){  
+      if(a["name"].toLowerCase() > b["name"].toLowerCase())  
+         return 1;  
+      else if(a["name"].toLowerCase() < b["name"].toLowerCase())  
+         return -1;  
+  
+      return 0;  
+   }  
+};
+
+//Display a character
+const charFrame = data => {
+
+    //Frame wrapper
+    let wrapper = document.createElement("div");
+    wrapper.classList.add("char-frame", "mb-3", "row");
+
+    //Character portrait
+    let col_portrait = document.createElement("div");
+    col_portrait.classList.add("col", "flex-grow-0");
+    if(data["img"] == "") {
+        col_portrait.innerHTML = "<i class='bx bx-user-circle bx-lg'></i>";
+    }
+    else {
+        // TODO : import image from string 
+    }
+    wrapper.appendChild(col_portrait);
+
+    //Character info
+    let col = document.createElement("div");
+    col.classList.add("col", "flex-grow-1");
+    
+    //Char name
+    let div = document.createElement("h3");
+    div.classList.add("suiko-title");
+    div.innerHTML = data["name"];
+    //Edit button
+    let btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("btn", "btn-outline-info", "btn-sm", "ms-2", "edit-character");
+    btn.setAttribute("data-id", data["id"]);
+    btn.innerHTML = "<i class='bx bx-pencil'></i>";
+    div.appendChild(btn);
+    col.appendChild(div);
+
+    //Character status
+    div = document.createElement("div");
+    let def = null;
+    //loop on defs to find the correct one
+    for([defkey, defdata] of Object.entries(char_defs)) {
+        if(defdata.key == data["status"]) def = defdata;
+    }
+    if(def == null) { //no definition found, wtf?
+        div.innerHTML = "?????";
+    }
+    else {
+        div.classList.add("text-"+def.color);
+        div.innerHTML = def.str;
+    }
+    col.appendChild(div);
+
+    //Character location
+    div = document.createElement("div");
+    div.innerHTML = data["location"];
+    col.appendChild(div);
+
+    //Character description
+    div = document.createElement("pre");
+    div.innerHTML = data["description"];
+    col.appendChild(div);
+
+    wrapper.appendChild(col);
+    thelist.appendChild(wrapper);
+};
+        </script>
+    </body>
+</html>
