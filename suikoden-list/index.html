@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
     <head>
+        <title>Suikoden character list</title>
         <!-- bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -19,6 +20,25 @@ body {
     font-family: "Amarante", serif;
     font-weight: 400;
     font-style: normal;
+}
+.suiko-width {
+    width: 120px;
+    text-align: center;
+}
+.suiko-portrait {
+    width: 120px;
+    height: 120px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    background-size: cover;
+    border:2px solid #e2b028;
+    -webkit-box-shadow: 4px 5px 0px 0px rgba(0,0,0,0.12); 
+    box-shadow: 4px 5px 0px 0px rgba(0,0,0,0.12);
+}
+.modal {
+    -webkit-backdrop-filter: blur(1px);
+    backdrop-filter: blur(5px);
 }
         </style>
     </head>
@@ -42,6 +62,12 @@ body {
                         <form name="newchar" method="post" action="">
                             <input type="hidden" name="id" value="">
                             <input type="hidden" name="imgstring" value="">
+
+                            <div class="text-center">
+                                <button type="button" class="btn btn-link text-underline-none"
+                                    data-bs-toggle="modal" data-bs-target="#modal-portrait"
+                                    ><span id="char-portrait"><i class="bx bx-lg bx-user-plus"></i></span></button>
+                            </div>
                             
                             <div class="form-floating mb-3">
                                 <input type="text" name="name" class="form-control" id="char-name" placeholder="Character name" required>
@@ -70,6 +96,23 @@ body {
                 </div>
             </div>
         </div>
+
+        <div class="modal" id="modal-portrait" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Paste portrait</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="w-100 h-100 d-flex justify-content-center align-items-center display-portrait">
+                            <span><i class="bx bx-fullscreen bx-lg"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>          
+
         <script language="javascript">
 //storage for the characters
 const storage = window.localStorage;
@@ -80,6 +123,8 @@ const thesearch = document.querySelector("#search-char");
 const addon_thesearch = document.querySelector("#search-addon");
 const form_radios = document.querySelector("#form-radios");
 const search_radios = document.querySelector("#search-radios");
+const modal = document.querySelector("#modal-portrait");
+let opened_modal = false;
 
 //character types definition
 const char_defs = {
@@ -145,8 +190,29 @@ document.addEventListener("DOMContentLoaded", evt=>{
     document.addEventListener("click", clickevt => {
         let targ = clickevt.target;
         if(targ instanceof SVGPathElement || targ instanceof SVGElement || targ instanceof SVGAnimateElement || targ.classList.contains("bx")) targ = targ.closest("button, a");
-        if(targ && targ.classList.contains("edit-character") && targ.getAttribute("data-id")) {
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "edit-character" && targ.getAttribute("data-id")) {
             loadChar(targ.getAttribute("data-id"));
+        }
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "delete-character" && targ.getAttribute("data-id")) {
+            deleteChar(targ.getAttribute("data-id"));
+        }
+    });
+
+    //toggles if the modal is opened or not
+    modal.addEventListener("shown.bs.modal", modal_opened_event => {
+        opened_modal = true;
+    });
+    modal.addEventListener("hide.bs.modal", modal_closed_event => {
+        opened_modal = false;
+        let targ = modal.querySelector(".modal-body .display-portrait");
+        targ.innerHTML = "<span><i class='bx bx-fullscreen bx-lg'></i>";
+    });
+
+    //paste event
+    document.addEventListener("paste", pasteevt => {
+        if(opened_modal) {
+            pasteevt.preventDefault();
+            pasteImage();
         }
     });
 });
@@ -156,6 +222,9 @@ const emptyForm = () => {
     document.querySelector(".formtitle").innerHTML = "New character";
     document.querySelector(".btnicon").innerHTML = "<i class='bx bx-plus'></i>";
     document.querySelector(".btntxt").innerHTML = "Add character";
+    document.querySelector("#char-portrait").innerHTML = "<i class='bx bx-user-plus bx-lg'></i>";
+    theform.querySelector("input[name='id']").value = "";
+    theform.querySelector("input[name='imgstring']").value = "";
     theform.querySelector("input[name='name']").value = "";
     theform.querySelector("input[name='location']").value = "";
     theform.querySelector("textarea[name='description']").value = "";
@@ -226,7 +295,7 @@ const genRadios = () => {
 
 //Stores character into storage
 const storeChar = () => {
-    let elemid = (fetchval("id") !== "") ? fetchval("id") : storage.length + 1; //bleh, needs to be better
+    let elemid = (fetchval("id") !== "") ? fetchval("id") : genID(string_to_slug(fetchval("name")));
     let data = {
         id: elemid,
         img: fetchval("imgstring"),
@@ -240,6 +309,21 @@ const storeChar = () => {
     displayChars();
 };
 
+const genID = (str) => {
+    let ids = [];
+    for([key, val] of Object.entries(storage)) {
+        ids.push(key);
+    };
+    let nb = 0;
+    let final = "" + str;
+    while(ids.includes(final)) {
+        nb++;
+        final = "" + str + nb;
+    }
+    return final;
+};
+
+//fetches the value of an element of the form
 const fetchval = (entry) => {
     //Need to find the correct option for status
     if(entry == "status") {
@@ -257,6 +341,7 @@ const loadChar = (id) => {
     let char = storage.getItem(id);
     if(char) {
         let data = JSON.parse(char);
+        let frame = document.querySelector("#char-portrait");
         document.querySelector(".formtitle").innerHTML = "Edit character";
         document.querySelector(".btnicon").innerHTML = "<i class='bx bx-cog'></i>";
         document.querySelector(".btntxt").innerHTML = "Edit character";
@@ -266,6 +351,16 @@ const loadChar = (id) => {
         theform.querySelector("input[name='location']").value = data["location"];
         theform.querySelector("textarea[name='description']").value = data["description"];
         form_radios.querySelectorAll("input[type='radio']").forEach(elem => elem.checked = (elem.value == data["status"]));
+
+        //Character portrait handling
+        if(data["img"] != "") {
+            let portrait = createPortrait(data["img"]);
+            frame.innerHTML = "";
+            frame.appendChild(portrait);
+        }
+        else {
+            frame.innerHTML = "<i class='bx bx-user-plus bx-lg'></i>";
+        }
     }
 }
 
@@ -332,10 +427,12 @@ const charFrame = data => {
     let col_portrait = document.createElement("div");
     col_portrait.classList.add("col", "flex-grow-0");
     if(data["img"] == "") {
-        col_portrait.innerHTML = "<i class='bx bx-user-circle bx-lg'></i>";
+        col_portrait.innerHTML = "<div class='suiko-width'><i class='bx bx-user-circle bx-lg'></i></div>";
     }
     else {
-        // TODO : import image from string 
+        let img = createPortrait(data["img"]);
+        col_portrait.innerHTML = "";
+        col_portrait.appendChild(img);
     }
     wrapper.appendChild(col_portrait);
 
@@ -350,9 +447,17 @@ const charFrame = data => {
     //Edit button
     let btn = document.createElement("button");
     btn.type = "button";
-    btn.classList.add("btn", "btn-outline-info", "btn-sm", "ms-2", "edit-character");
+    btn.classList.add("btn", "btn-outline-info", "btn-sm", "ms-2");
+    btn.setAttribute("data-action", "edit-character");
     btn.setAttribute("data-id", data["id"]);
     btn.innerHTML = "<i class='bx bx-pencil'></i>";
+    div.appendChild(btn);
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("btn", "btn-outline-danger", "btn-sm", "ms-2");
+    btn.setAttribute("data-action", "delete-character");
+    btn.setAttribute("data-id", data["id"]);
+    btn.innerHTML = "<i class='bx bx-x'></i>";
     div.appendChild(btn);
     col.appendChild(div);
 
@@ -385,6 +490,73 @@ const charFrame = data => {
     wrapper.appendChild(col);
     thelist.appendChild(wrapper);
 };
+
+async function pasteImage() {
+    const items = await navigator.clipboard.read()
+        .catch(error => { console.log(error); });
+    for(let item of items) {
+        for(let type of item.types) {
+            if(type.startsWith("image/")) {
+                item.getType(type).then(blob => {
+                    let reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        let data = reader.result;
+                        theform.querySelector("input[name='imgstring']").value = data;
+                        let img = createPortrait(data);
+                        let formimg = img.cloneNode(true);
+                        img.style.width = "200px !important";
+                        img.style.height = "200px !important";
+                        let targ = modal.querySelector(".modal-body .display-portrait");
+                        targ.innerHTML = "";
+                        targ.appendChild(img);
+                        let formtarg = document.querySelector("#char-portrait");
+                        formtarg.innerHTML = "";
+                        formtarg.appendChild(formimg);
+                    }
+                });
+            }
+        }
+    }
+};
+
+const createPortrait = (imgstring) => {
+    let img = document.createElement("div");
+    img.style.backgroundImage = "url(" + imgstring + ")";
+    img.classList.add("suiko-portrait");
+    img.innerHTML = "&nbsp;";
+
+    return img;
+};
+
+const deleteChar = (id) => {
+    char = storage.getItem(id);
+    if(char) {
+        let data = JSON.parse(char);
+        if(confirm("Do you really wish to delete " + data.name + "? :(")) {
+            storage.removeItem(id);
+            displayChars();
+        }
+    }
+};
+
+const string_to_slug = (str) => {
+    str = str.replace(/^\s+|\s+$/g, ''); // trim
+    str = str.toLowerCase();
+  
+    // remove accents, swap ñ for n, etc
+    var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+    var to   = "aaaaeeeeiiiioooouuuunc------";
+    for (var i=0, l=from.length ; i<l ; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
+
+    str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+        .replace(/\s+/g, '-') // collapse whitespace and replace by -
+        .replace(/-+/g, '-'); // collapse dashes
+
+    return str;
+}
         </script>
     </body>
 </html>
