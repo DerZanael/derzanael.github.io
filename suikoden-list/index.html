@@ -95,6 +95,11 @@ body {
                     </div>
                 </div>
             </div>
+
+            <div class="w-100 d-flex justify-content-center align-items-center py-3 gap-2">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="backup" class="btn btn-success"><i class="bx bx-save"></i> Backup</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="restore" class="btn btn-warning"><i class="bx bx-cloud-upload"></i> Restore</button>
+            </div>
         </div>
 
         <div class="modal" id="modal-portrait" tabindex="-1">
@@ -108,6 +113,26 @@ body {
                         <div class="w-100 h-100 d-flex justify-content-center align-items-center display-portrait">
                             <span><i class="bx bx-fullscreen bx-lg"></i></span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>  
+
+        <div class="modal" id="modal-backup" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="fbackup_restore" method="post" action="">
+                            <input type="hidden" name="current_type" value="backup">
+                            <textarea class="form-control" id="backup-field" placeholder="Backup data goes here" required></textarea>
+                            <div class="text-center pt-2">
+                                <button type="submit" class="btn btn-success" id="backup-button"><span class="icon"><i class="bx bx-copy"></i></span> <span class="btntxt">Copy</span></button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -125,6 +150,13 @@ const form_radios = document.querySelector("#form-radios");
 const search_radios = document.querySelector("#search-radios");
 const modal = document.querySelector("#modal-portrait");
 let opened_modal = false;
+
+const modal_backup = document.querySelector("#modal-backup");
+const frm_backup = document.querySelector("form[name='fbackup_restore']");
+const backup_field = frm_backup.querySelector("#backup-field");
+const modal_backup_button = frm_backup.querySelector("#backup-button");
+const backup_button = document.querySelector("button[data-action='backup']");
+const restore_button = document.querySelector("button[data-action='restore']");
 
 //character types definition
 const char_defs = {
@@ -214,6 +246,25 @@ document.addEventListener("DOMContentLoaded", evt=>{
             pasteevt.preventDefault();
             pasteImage();
         }
+    });
+
+    frm_backup.addEventListener("submit", subevt => {
+        subevt.preventDefault();
+        handleBackup();
+    });
+
+    backup_button.addEventListener("click", clevt=>{
+        frm_backup.querySelector("input[name='current_type']").value = "backup";
+        backup_field.value = genBackupData();
+        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-copy'></i>";
+        modal_backup_button.querySelector(".btntxt").innerHTML = "Copy";
+    });
+
+    restore_button.addEventListener("click", clevt=>{
+        frm_backup.querySelector("input[name='current_type']").value = "restore";
+        backup_field.value = null;
+        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-cog'></i>";
+        modal_backup_button.querySelector(".btntxt").innerHTML = "Restore";
     });
 });
 
@@ -537,6 +588,44 @@ const deleteChar = (id) => {
             storage.removeItem(id);
             displayChars();
         }
+    }
+};
+
+const genBackupData = () => {
+    return JSON.stringify(storage, undefined, 2); 
+};
+
+const handleBackup = () => {
+    let type = frm_backup.querySelector("input[name='current_type']").value;
+    if(type == "backup") {
+        doBackup();
+    }
+    if(type == "restore") {
+        doRestore();
+    }
+};
+
+const doBackup = () => {
+    backup_field.select();
+    document.execCommand("copy");
+};
+
+const doRestore = () => {
+    let str = backup_field.value;
+    let json = null;
+    try {
+        json = JSON.parse(str);
+    }
+    catch(error) {
+        json = null;
+        alert("The data couldn't be parsed, please check that it has been correctly pasted");
+    }
+    if(json !== null) {
+        storage.clear();
+        for([key, value] of Object.entries(json)) {
+            storage.setItem(key, value);
+        };
+        displayChars();
     }
 };
 
