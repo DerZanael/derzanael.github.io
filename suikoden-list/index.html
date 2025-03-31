@@ -12,6 +12,8 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+        <!-- libs -->
+        <script src="https://cdn.jsdelivr.net/gh/pieroxy/lz-string/libs/lz-string.js"></script>
         <style type="text/css">
 body {
     font-family: "Open Sans", sans-serif;
@@ -141,6 +143,14 @@ body {
         <script language="javascript">
 //storage for the characters
 const storage = window.localStorage;
+// const storage = indexedDB.open("suikolist", 1);
+// //surcharges
+// storage.getItem = (id) => {
+//     return "hello";
+// };
+// storage.setItem = (id, data) => {
+//     return true;
+// };
 //page elements
 const thelist = document.querySelector("#list");
 const theform = document.querySelector("form[name='newchar']");
@@ -184,6 +194,8 @@ const char_defs = {
 const char_def_defaut = "RAND";
 
 document.addEventListener("DOMContentLoaded", evt=>{
+    updateStorage();
+
     //load from storage on page load
     thesearch.value = ""; //set search to null
     emptyForm(); //reset form
@@ -268,6 +280,21 @@ document.addEventListener("DOMContentLoaded", evt=>{
     });
 });
 
+//Image compression
+const saveImage = function(data) {
+    if(data.startsWith("data:image") && data != "") {
+        return LZString.compress(data);
+    }
+    return data;
+}
+//Image decompression
+const loadImage = function(data) {
+    if(!data.startsWith("data:image") && data != "") {
+        return LZString.decompress(data);
+    }
+    return data;
+}
+
 //resets the form
 const emptyForm = () => {
     document.querySelector(".formtitle").innerHTML = "New character";
@@ -349,7 +376,7 @@ const storeChar = () => {
     let elemid = (fetchval("id") !== "") ? fetchval("id") : genID(string_to_slug(fetchval("name")));
     let data = {
         id: elemid,
-        img: fetchval("imgstring"),
+        img: saveImage(fetchval("imgstring")),
         name: fetchval("name"),
         location: fetchval("location"),
         description: fetchval("description"),
@@ -397,7 +424,7 @@ const loadChar = (id) => {
         document.querySelector(".btnicon").innerHTML = "<i class='bx bx-cog'></i>";
         document.querySelector(".btntxt").innerHTML = "Edit character";
         theform.querySelector("input[name='id']").value = data["id"];
-        theform.querySelector("input[name='imgstring']").value = data["img"];
+        theform.querySelector("input[name='imgstring']").value = loadImage(data["img"]);
         theform.querySelector("input[name='name']").value = data["name"];
         theform.querySelector("input[name='location']").value = data["location"];
         theform.querySelector("textarea[name='description']").value = data["description"];
@@ -573,7 +600,8 @@ async function pasteImage() {
 
 const createPortrait = (imgstring) => {
     let img = document.createElement("div");
-    img.style.backgroundImage = "url(" + imgstring + ")";
+    imgdata = loadImage(imgstring);
+    img.style.backgroundImage = "url(" + imgdata + ")";
     img.classList.add("suiko-portrait");
     img.innerHTML = "&nbsp;";
 
@@ -592,7 +620,13 @@ const deleteChar = (id) => {
 };
 
 const genBackupData = () => {
-    return JSON.stringify(storage, undefined, 2); 
+    let bdata = {};
+    for([key, value] of Object.entries(storage)) {
+        parsed = JSON.parse(value);
+        parsed["img"] = loadImage(parsed["img"]);
+        bdata[key] = JSON.stringify(parsed);
+    }
+    return JSON.stringify(bdata, undefined, 2); 
 };
 
 const handleBackup = () => {
@@ -623,9 +657,25 @@ const doRestore = () => {
     if(json !== null) {
         storage.clear();
         for([key, value] of Object.entries(json)) {
+            //update image from old save for the new storage way
+            data = JSON.parse(value);
+            data["img"] = saveImage(data["img"]);
+            value = JSON.stringify(data);
             storage.setItem(key, value);
         };
         displayChars();
+    }
+};
+
+/**
+ * Update storage data for images
+ */
+const updateStorage = ()=>{
+    for([key, value] of Object.entries(storage)) {
+        let data = JSON.parse(value);
+        let olddata = data["img"];
+        data["img"] = saveImage(data["img"]);
+        if(olddata != data["img"]) storage.setItem(key, JSON.stringify(data));
     }
 };
 
