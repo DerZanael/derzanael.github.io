@@ -92,6 +92,9 @@ body {
                                 <button type="submit" class="btn btn-success">
                                     <span class="btnicon"><i class="bx bx-plus"></i></span> <span class="btntxt">Add character</span>
                                 </button>
+                                <button type="button" class="btn btn-secondary visually-hidden" data-action="reset-form">
+                                    <span class="btnicon"><i class="bx bx-reset"></i></span> <span class="btntxt">Cancel</span>
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -142,15 +145,76 @@ body {
 
         <script language="javascript">
 //storage for the characters
-const storage = window.localStorage;
-// const storage = indexedDB.open("suikolist", 1);
-// //surcharges
-// storage.getItem = (id) => {
-//     return "hello";
-// };
-// storage.setItem = (id, data) => {
-//     return true;
-// };
+// const storage = window.localStorage;
+const DBNAME = "suikolist";
+const STORENAME = "characters";
+let storage = null;
+const request = window.indexedDB.open(DBNAME, 1);
+//Initializing how the DB works
+request.onsuccess = event => {
+    storage = event.target.result;
+    updateStorage(); //@TODO: update from localStorage to indexedDB
+    displayChars();
+    
+    //EVENTS
+    //get a character out of the DB, load into the form
+    storage.getItem = (id) => {
+        let res = null;
+        storage.transaction([STORENAME]).objectStore(STORENAME).get(id).onsuccess = event => {
+            res = event.target.result;
+            fillForm(res);
+        };
+    };
+    storage.setItem = (id, data) => {
+        let store = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME);
+        let req = store.get(id); //check if enty exists beforehand
+        //bingo, update
+        req.onsuccess = (event) => {
+            let update = store.put(data);
+            update.onerror = (evt) => { alert("Couldn't update :("); };
+            update.onsuccess = (evt) => {
+                emptyForm();
+                displayChars();
+            }
+        };
+        //bu-bun, we insert
+        req.onerror = (event) => {
+            let insert = store.add(data);
+            insert.onerror = (evt) => { alert("Couldn't save :("); console.log(evt.error); };
+            insert.onsuccess = (evt) => {
+                emptyForm();
+                displayChars();
+            }
+        }
+    };
+    storage.removeItem = (id) => {
+        dodelete = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME).delete(id);
+        dodelete.onsuccess = (evt) => {
+            displayChars();
+        }
+        dodelete.onerror = (evt) => {
+            alert("Hu-oh, this character refuses to be deleted...");
+            console.log(evt);
+        }
+    };
+    storage.onerror = (event) => {
+
+    }
+};
+request.onerror = event => {
+    alert("System is kaput :(");
+    console.log(event);
+};
+//Schema creation
+request.onupgradeneeded = event => {
+    const db = event.target.result;
+    const dbstore = db.createObjectStore(STORENAME, {keyPath: "id", autoIncrement: false});
+    dbstore.createIndex("name", "name", { unique: false });
+    dbstore.createIndex("location", "location", { unique: false });
+    dbstore.transaction.oncomplete = (evt) => {
+        const characterStore = db.transaction(STORENAME, "readwrite").dbstore(STORENAME);
+    }
+};
 //page elements
 const thelist = document.querySelector("#list");
 const theform = document.querySelector("form[name='newchar']");
@@ -192,15 +256,14 @@ const char_defs = {
     },
 };
 const char_def_defaut = "RAND";
+let character_list = [];
 
 document.addEventListener("DOMContentLoaded", evt=>{
-    updateStorage();
 
     //load from storage on page load
     thesearch.value = ""; //set search to null
     emptyForm(); //reset form
     genRadios(); //generate search and form radios
-    displayChars(); //display character list from storage
 
     //block search form submit
     document.querySelector("form[name='fsearch']").addEventListener("submit", subevt => {
@@ -239,6 +302,9 @@ document.addEventListener("DOMContentLoaded", evt=>{
         }
         if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "delete-character" && targ.getAttribute("data-id")) {
             deleteChar(targ.getAttribute("data-id"));
+        }
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "reset-form") {
+            emptyForm();
         }
     });
 
@@ -282,9 +348,9 @@ document.addEventListener("DOMContentLoaded", evt=>{
 
 //Image compression
 const saveImage = function(data) {
-    if(data.startsWith("data:image") && data != "") {
-        return LZString.compress(data);
-    }
+    // if(data.startsWith("data:image") && data != "") {
+    //     return LZString.compress(data);
+    // }
     return data;
 }
 //Image decompression
@@ -309,6 +375,7 @@ const emptyForm = () => {
     theform.querySelectorAll("input[type='radio']").forEach(rad => {
         rad.checked = (rad.value == char_def_defaut);
     });
+    theform.querySelector("button[data-action='reset-form']").classList.add("visually-hidden");
 }
 
 //create radio inputs for character status
@@ -373,25 +440,25 @@ const genRadios = () => {
 
 //Stores character into storage
 const storeChar = () => {
-    let elemid = (fetchval("id") !== "") ? fetchval("id") : genID(string_to_slug(fetchval("name")));
-    let data = {
-        id: elemid,
-        img: saveImage(fetchval("imgstring")),
-        name: fetchval("name"),
-        location: fetchval("location"),
-        description: fetchval("description"),
-        status: fetchval("status"),
+    let ids = [];
+    let newchar = (fetchval("id") == "");
+
+    if(!newchar) {
+        exeStore(fetchval("id"));
     }
-    storage.setItem(elemid, JSON.stringify(data));
-    emptyForm();
-    displayChars();
+    else {
+        let str = string_to_slug(fetchval("name"));
+        storage.transaction([STORENAME]).objectStore(STORENAME).getAll().onsuccess = (evt) => {
+            evt.target.result.forEach(elem => {
+                ids.push(elem.id);
+            });
+            elemid = genID(str, ids);
+            exeStore(elemid);
+        };
+    }
 };
 
-const genID = (str) => {
-    let ids = [];
-    for([key, val] of Object.entries(storage)) {
-        ids.push(key);
-    };
+const genID = (str, ids) => {
     let nb = 0;
     let final = "" + str;
     while(ids.includes(final)) {
@@ -399,6 +466,18 @@ const genID = (str) => {
         final = "" + str + nb;
     }
     return final;
+};
+
+const exeStore = (elemid) => {
+    let data = {
+        id: elemid,
+        name: fetchval("name"),
+        location: fetchval("location"),
+        description: fetchval("description"),
+        status: fetchval("status"),
+        img: saveImage(fetchval("imgstring")),
+    }
+    storage.setItem(elemid, data);
 };
 
 //fetches the value of an element of the form
@@ -416,9 +495,12 @@ const fetchval = (entry) => {
 
 //Loads a character into the form
 const loadChar = (id) => {
-    let char = storage.getItem(id);
+    storage.getItem(id);
+}
+//fills with character info
+const fillForm = (char) => {
     if(char) {
-        let data = JSON.parse(char);
+        let data = char; //@TODO cleanup
         let frame = document.querySelector("#char-portrait");
         document.querySelector(".formtitle").innerHTML = "Edit character";
         document.querySelector(".btnicon").innerHTML = "<i class='bx bx-cog'></i>";
@@ -429,6 +511,7 @@ const loadChar = (id) => {
         theform.querySelector("input[name='location']").value = data["location"];
         theform.querySelector("textarea[name='description']").value = data["description"];
         form_radios.querySelectorAll("input[type='radio']").forEach(elem => elem.checked = (elem.value == data["status"]));
+        theform.querySelector("button[data-action='reset-form']").classList.remove("visually-hidden");
 
         //Character portrait handling
         if(data["img"] != "") {
@@ -440,10 +523,34 @@ const loadChar = (id) => {
             frame.innerHTML = "<i class='bx bx-user-plus bx-lg'></i>";
         }
     }
-}
+};
 
 //Refreshs the character list
 const displayChars = () => {
+    retrieveList();
+};
+
+//Retrieves character list in alphabetical order with decoded data
+const retrieveList = () => {
+    //Empty the global list
+    character_list = [];
+    //transaction to fetch the data in DB
+    let store = storage.transaction([STORENAME]).objectStore(STORENAME);
+    store.openCursor().onsuccess = (event) => {
+        const cursor = event.target.result;
+        //while we have data
+        if(cursor) {
+            character_list.push(cursor.value);
+            cursor.continue();
+        }
+        //End of data, display the list
+        else {
+            displayList();
+        }
+    }
+};
+
+const displayList = () => {
     thelist.innerHTML = "";
     let nb = 0;
 
@@ -452,13 +559,13 @@ const displayChars = () => {
     let reg = (search_val != "") ? new RegExp(search_val.toLowerCase(), "gi") : null; //regular exp to match
     let status_val = null;
     search_radios.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) status_val = elem.value; }); //chosen status
-
-    if(storage.length == 0) {
+    character_list.sort(sortName());
+    if(character_list.length == 0) {
         thelist.innerHTML = "<p class='alert alert-warning'><strong>No character entry found</strong><br>Get to work Endy!</p>";
     }
     else {
         //loop on characters
-        retrieveList().forEach(data => {
+        character_list.forEach(data => {
             let select = true; //by default the character will be displayed
             if(reg !== null && !data["name"].toLowerCase().match(reg)) select = false; //unless they don't match the search
             if(status_val != "" && status_val != "ALL" && data["status"] != status_val) select = false; //unless they don't match status 
@@ -473,15 +580,6 @@ const displayChars = () => {
     }
 };
 
-//Retrieves character list in alphabetical order with decoded data
-const retrieveList = () => {
-    let arr = [];
-    for([key, item] of Object.entries(storage)) {
-        arr.push(JSON.parse(item));
-    }
-    arr.sort(sortName());
-    return arr;
-};
 //sorts on a property
 const sortName = () => {  
    return function(a,b){  
@@ -609,14 +707,12 @@ const createPortrait = (imgstring) => {
 };
 
 const deleteChar = (id) => {
-    char = storage.getItem(id);
-    if(char) {
-        let data = JSON.parse(char);
+    storage.transaction([STORENAME]).objectStore(STORENAME).get(id).onsuccess = event => {
+        data = event.target.result;
         if(confirm("Do you really wish to delete " + data.name + "? :(")) {
             storage.removeItem(id);
-            displayChars();
         }
-    }
+    };
 };
 
 const genBackupData = () => {
@@ -655,27 +751,46 @@ const doRestore = () => {
         alert("The data couldn't be parsed, please check that it has been correctly pasted");
     }
     if(json !== null) {
-        storage.clear();
+        window.localStorage.clear();
         for([key, value] of Object.entries(json)) {
             //update image from old save for the new storage way
             data = JSON.parse(value);
             data["img"] = saveImage(data["img"]);
             value = JSON.stringify(data);
-            storage.setItem(key, value);
+            window.localStorage.setItem(key, value);
         };
         displayChars();
     }
 };
 
 /**
- * Update storage data for images
+ * Migrates OG data to new DB
  */
 const updateStorage = ()=>{
-    for([key, value] of Object.entries(storage)) {
-        let data = JSON.parse(value);
-        let olddata = data["img"];
-        data["img"] = saveImage(data["img"]);
-        if(olddata != data["img"]) storage.setItem(key, JSON.stringify(data));
+    if(window.localStorage.length > 0) {
+        let loader = document.createElement("div");
+        loader.style.zIndex = 500;
+        loader.classList.add("bg-dark", "position-absolute", "top-0", "bottom-0", "start-0", "end-0", "d-flex", "justify-content-center", "align-items-center");
+        loader.id = "migrating";
+        loader.innerHTML = "<div class='h1'><i class='bx bx-loader-circle bx-spin'></i><br>Hang tight !<br>Migrating data...</div>";
+        document.querySelector("body").appendChild(loader);
+        for([key, value] of Object.entries(window.localStorage)) {
+            let data = JSON.parse(value);
+            data["img"] = loadImage(data["img"]);
+            let req = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME).add(data);
+            req.onsuccess = (evt) => {
+                try {
+                    window.localStorage.removeItem(data.id);
+                }
+                catch(error) {
+                    console.log(error);
+                }
+            }
+            req.onerror = (evt) => {
+                console.log(key, data.id, "wtf");
+            }
+        }
+        document.querySelector("#migrating").remove();
     }
 };
 
@@ -696,6 +811,27 @@ const string_to_slug = (str) => {
 
     return str;
 }
+
+const dofake = (nb) => {
+    let store = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME)
+    let finder = store.get("fake");
+    finder.onsuccess = (evt) => {
+        let obj = evt.target.result;
+        let neo = null;
+        for(let i=1; i <= nb; i++) {
+            neo = {
+                id: "" + obj.id + i,
+                name: "" + obj.name + " #" + i,
+                location: obj.location,
+                description: obj.description,
+                status: obj.status,
+                img: obj.img,
+            };
+            store.add(neo);
+        }
+        displayChars();
+    }
+};
         </script>
     </body>
 </html>
