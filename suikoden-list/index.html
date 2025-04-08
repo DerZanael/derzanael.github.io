@@ -56,7 +56,7 @@ body {
             <div class="d-flex justify-content-between align-items-center w-100 my-3 py-2 sticky-top bg-dark" style="z-index:5;">
                 <h1 class="h3 suiko-title">Suikoden character list</h1>
                 <form name="fsearch" method="post" action="" class="small d-flex justify-content-end align-items-center">
-                    <div class="flex-grow-1 me-3 small" id="search-radios"></div>
+                    <div class="flex-grow-1 me-3" id="search-radios"></div>
                     <div class="input-group w-25">
                         <input type="text" id="search-char" class="form-control border-info" placeholder="Search character" aria-label="Search character" aria-describedby="search-addon">
                         <button class="btn btn-info" type="button" id="search-addon"><i class='bx bx-search-alt-2'></i></button>
@@ -451,6 +451,7 @@ const genRadios = () => {
         badge.innerHTML = 0;
         badge.setAttribute("data-statut-badge", data.key);
         label_search.appendChild(badge);
+        label_search.classList.add("small");
 
         wrap_form.appendChild(input_form);
         wrap_form.appendChild(label_form);
