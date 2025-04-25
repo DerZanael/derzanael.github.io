@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <title>La Gazette de Lumière</title>
+        <!-- bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <!-- boxicons -->
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <!-- fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Amarante&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+        <!-- libs -->
+        <script src="https://cdn.jsdelivr.net/gh/pieroxy/lz-string/libs/lz-string.js"></script>
+        <style type="text/css">
+body {
+    font-family: "Open Sans", sans-serif;
+}
+.suiko-title, .suiko-header {
+    font-family: "Amarante", serif;
+    font-weight: 400;
+    font-style: normal;
+    text-transform: uppercase;
+}
+.suiko-header {
+    font-family: "Lobster", sans-serif;
+    font-size:27pt;
+    letter-spacing: 2px;
+    color: #e9d205;
+}
+.suiko-width {
+    width: 120px;
+    text-align: center;
+}
+.suiko-portrait {
+    width: 120px;
+    height: 120px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    background-size: cover;
+    border:2px solid #e2b028;
+    -webkit-box-shadow: 4px 5px 0px 0px rgba(0,0,0,0.12); 
+    box-shadow: 4px 5px 0px 0px rgba(0,0,0,0.12);
+}
+.modal {
+    -webkit-backdrop-filter: blur(1px);
+    backdrop-filter: blur(5px);
+}
+.text-dead {
+    color: #FF00FF;
+}
+.text-bg-dead {
+    color: white;
+    background-color: #FF00FF;
+}
+pre {
+    width:auto;
+    max-width:600px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+        </style>
+    </head>
+    <body class="bg-black">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center w-100 my-3 p-2 sticky-top bg-dark rounded" style="z-index:5;">
+                <h1 class="h3 suiko-header m-0">La Gazette de Lumière</h1>
+                <form name="fsearch" method="post" action="" class="small d-flex justify-content-end align-items-center">
+                    <div class="flex-grow-1 me-3" id="search-radios"></div>
+                    <div class="input-group w-25">
+                        <input type="text" id="search-char" class="form-control border-info" placeholder="Search entries" aria-label="Search entries" aria-describedby="search-addon">
+                        <button class="btn btn-info" type="button" id="search-addon"><i class='bx bx-search-alt-2'></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col-8" id="list" style="z-index: 1;"></div>
+                <div class="col-4" id="form-wrapper" style="z-index: 2;">
+                    <div class="sticky-top py-5">
+                        <h2 class="h4 suiko-title text-center mb-3 pt-3 formtitle">New entry</h2>
+                        <form name="newchar" method="post" action="">
+                            <input type="hidden" name="id" value="">
+                            <input type="hidden" name="imgstring" value="">
+
+                            <div class="text-center">
+                                <button type="button" class="btn btn-link text-underline-none"
+                                    data-bs-toggle="modal" data-bs-target="#modal-portrait"
+                                    ><span id="char-portrait"><i class="bx bx-lg bx-image-add"></i></span></button>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="name" class="form-control" id="char-name" placeholder="Title" required>
+                                <label for="char-name">Title</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="location" class="form-control" id="char-location" placeholder="Location" required>
+                                <label for="char-location">Location</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <textarea name="description" id="char-description" class="form-control" placeholder="Description / notes"></textarea>
+                                <label for="char-name">Description / notes</label>
+                            </div>
+
+                            <div id="form-radios" class="mb-3"></div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success">
+                                    <span class="btnicon"><i class="bx bx-plus"></i></span> <span class="btntxt">Add entry</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary visually-hidden" data-action="reset-form">
+                                    <span class="btnicon"><i class="bx bx-reset"></i></span> <span class="btntxt">Cancel</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-100 d-flex justify-content-center align-items-center py-3 gap-2">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="backup" class="btn btn-success"><i class="bx bx-save"></i> Backup</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="restore" class="btn btn-warning"><i class="bx bx-cloud-upload"></i> Restore</button>
+            </div>
+        </div>
+
+        <div class="modal" id="modal-portrait" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Paste image</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="w-100 h-100 d-flex justify-content-center align-items-center display-portrait">
+                            <span><i class="bx bx-fullscreen bx-lg"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>  
+
+        <div class="modal" id="modal-backup" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="fbackup_restore" method="post" action="">
+                            <input type="hidden" name="current_type" value="backup">
+                            <textarea class="form-control" id="backup-field" placeholder="Backup data goes here" required></textarea>
+                            <div class="text-center pt-2">
+                                <button type="submit" class="btn btn-success" id="backup-button"><span class="icon"><i class="bx bx-copy"></i></span> <span class="btntxt">Copy</span></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>          
+
+        <script language="javascript">
+//storage for the characters
+// const storage = window.localStorage;
+const DBNAME = "expedition";
+const STORENAME = "lorebits";
+let storage = null;
+const request = window.indexedDB.open(DBNAME, 1);
+//Initializing how the DB works
+request.onsuccess = event => {
+    storage = event.target.result;
+    updateStorage(); //@TODO: update from localStorage to indexedDB
+    displayChars();
+    
+    //EVENTS
+    //get a character out of the DB, load into the form
+    storage.getItem = (id) => {
+        let res = null;
+        storage.transaction([STORENAME]).objectStore(STORENAME).get(id).onsuccess = event => {
+            res = event.target.result;
+            fillForm(res);
+        };
+    };
+    storage.setItem = (id, data) => {
+        let store = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME);
+        let req = store.get(id); //check if enty exists beforehand
+        //bingo, update
+        req.onsuccess = (event) => {
+            let update = store.put(data);
+            update.onerror = (evt) => { alert("Couldn't update :("); };
+            update.onsuccess = (evt) => {
+                emptyForm();
+                displayChars();
+            }
+        };
+        //bu-bun, we insert
+        req.onerror = (event) => {
+            let insert = store.add(data);
+            insert.onerror = (evt) => { alert("Couldn't save :("); console.log(evt.error); };
+            insert.onsuccess = (evt) => {
+                emptyForm();
+                displayChars();
+            }
+        }
+    };
+    storage.removeItem = (id) => {
+        dodelete = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME).delete(id);
+        dodelete.onsuccess = (evt) => {
+            displayChars();
+        }
+        dodelete.onerror = (evt) => {
+            alert("Hu-oh, this entry refuses to be deleted...");
+            console.log(evt);
+        }
+    };
+    storage.onerror = (event) => {
+
+    }
+};
+request.onerror = event => {
+    alert("System is kaput :(");
+    console.log(event);
+};
+//Schema creation
+request.onupgradeneeded = event => {
+    const db = event.target.result;
+    const dbstore = db.createObjectStore(STORENAME, {keyPath: "id", autoIncrement: false});
+    dbstore.createIndex("name", "name", { unique: false });
+    dbstore.createIndex("location", "location", { unique: false });
+    dbstore.transaction.oncomplete = (evt) => {
+        const characterStore = db.transaction(STORENAME, "readwrite").dbstore(STORENAME);
+    }
+};
+//page elements
+const thelist = document.querySelector("#list");
+const theform = document.querySelector("form[name='newchar']");
+const thesearch = document.querySelector("#search-char");
+const addon_thesearch = document.querySelector("#search-addon");
+const form_radios = document.querySelector("#form-radios");
+const search_radios = document.querySelector("#search-radios");
+const modal = document.querySelector("#modal-portrait");
+let opened_modal = false;
+
+const modal_backup = document.querySelector("#modal-backup");
+const frm_backup = document.querySelector("form[name='fbackup_restore']");
+const backup_field = frm_backup.querySelector("#backup-field");
+const modal_backup_button = frm_backup.querySelector("#backup-button");
+const backup_button = document.querySelector("button[data-action='backup']");
+const restore_button = document.querySelector("button[data-action='restore']");
+
+//character types definition
+const char_defs = {
+    lore: {
+        key: "LORE",
+        str: "Lore",
+        color: "info",
+    },
+    character: {
+        key: "CHAR",
+        str: "Characters",
+        color: "success",
+    },
+    place: {
+        key: "PLACE",
+        str: "Places",
+        color: "warning",
+    },
+    quest: {
+        key: "QUEST",
+        str: "Quests",
+        color: "danger",
+    },
+    dead: {
+        key: "TIPS",
+        str: "Tips",
+        color: "dead",
+    },
+};
+const char_def_defaut = "LORE";
+let character_list = [];
+let character_numbers = {
+    LORE: 0,
+    PLACE: 0,
+    CHAR: 0,
+    QUEST: 0,
+    TIPS: 0,
+};
+
+document.addEventListener("DOMContentLoaded", evt=>{
+
+    //load from storage on page load
+    thesearch.value = ""; //set search to null
+    emptyForm(); //reset form
+    genRadios(); //generate search and form radios
+
+    //block search form submit
+    document.querySelector("form[name='fsearch']").addEventListener("submit", subevt => {
+        subevt.preventDefault();
+    });
+    //search radio events renders character list
+    search_radios.querySelectorAll("input[type='radio']").forEach(elem => {
+        elem.addEventListener("change", chevt => {
+            displayChars();
+        });
+    });
+    //doing search
+    thesearch.addEventListener("keyup", typeevt=>{
+        displayChars();
+        let icon = (thesearch.value.length > 0) ? "bx-x-circle" : "bx-search"; 
+        addon_thesearch.innerHTML = "<i class='bx "+icon+"'></i>";
+    });
+    //reset search
+    addon_thesearch.addEventListener("click", clickevent=>{
+        thesearch.value = "";
+        addon_thesearch.innerHTML = "<i class='bx bx-search'></i>";
+        displayChars();
+    });
+
+    //submit event on the form
+    theform.addEventListener("submit", subevt=>{
+        subevt.preventDefault();
+        storeChar();
+    });
+
+    document.addEventListener("click", clickevt => {
+        let targ = clickevt.target;
+        if(targ instanceof SVGPathElement || targ instanceof SVGElement || targ instanceof SVGAnimateElement || targ.classList.contains("bx")) targ = targ.closest("button, a");
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "edit-character" && targ.getAttribute("data-id")) {
+            loadChar(targ.getAttribute("data-id"));
+        }
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "delete-character" && targ.getAttribute("data-id")) {
+            deleteChar(targ.getAttribute("data-id"));
+        }
+        if(targ && targ.getAttribute("data-action") && targ.getAttribute("data-action") == "reset-form") {
+            emptyForm();
+        }
+    });
+
+    //toggles if the modal is opened or not
+    modal.addEventListener("shown.bs.modal", modal_opened_event => {
+        opened_modal = true;
+    });
+    modal.addEventListener("hide.bs.modal", modal_closed_event => {
+        opened_modal = false;
+        let targ = modal.querySelector(".modal-body .display-portrait");
+        targ.innerHTML = "<span><i class='bx bx-fullscreen bx-lg'></i>";
+    });
+
+    //paste event
+    document.addEventListener("paste", pasteevt => {
+        if(opened_modal) {
+            pasteevt.preventDefault();
+            pasteImage();
+        }
+    });
+
+    frm_backup.addEventListener("submit", subevt => {
+        subevt.preventDefault();
+        handleBackup();
+    });
+
+    backup_button.addEventListener("click", clevt=>{
+        frm_backup.querySelector("input[name='current_type']").value = "backup";
+        backup_field.value = genBackupData();
+        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-copy'></i>";
+        modal_backup_button.querySelector(".btntxt").innerHTML = "Copy";
+    });
+
+    restore_button.addEventListener("click", clevt=>{
+        frm_backup.querySelector("input[name='current_type']").value = "restore";
+        backup_field.value = null;
+        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-cog'></i>";
+        modal_backup_button.querySelector(".btntxt").innerHTML = "Restore";
+    });
+});
+
+//Image compression
+const saveImage = function(data) {
+    // if(data.startsWith("data:image") && data != "") {
+    //     return LZString.compress(data);
+    // }
+    return data;
+}
+//Image decompression
+const loadImage = function(data) {
+    if(!data.startsWith("data:image") && data != "") {
+        return LZString.decompress(data);
+    }
+    return data;
+}
+
+//resets the form
+const emptyForm = () => {
+    document.querySelector(".formtitle").innerHTML = "New entry";
+    document.querySelector(".btnicon").innerHTML = "<i class='bx bx-plus'></i>";
+    document.querySelector(".btntxt").innerHTML = "Add entry";
+    document.querySelector("#char-portrait").innerHTML = "<i class='bx bx-image-add bx-lg'></i>";
+    theform.querySelector("input[name='id']").value = "";
+    theform.querySelector("input[name='imgstring']").value = "";
+    theform.querySelector("input[name='name']").value = "";
+    theform.querySelector("input[name='location']").value = "";
+    theform.querySelector("textarea[name='description']").value = "";
+    theform.querySelectorAll("input[type='radio']").forEach(rad => {
+        rad.checked = (rad.value == char_def_defaut);
+    });
+    theform.querySelector("button[data-action='reset-form']").classList.add("visually-hidden");
+}
+
+//create radio inputs for character status
+const genRadios = () => {
+    let wrap_all = document.createElement("div");
+    wrap_all.classList.add("form-check", "form-check-inline");
+    let radio_all = document.createElement("input");
+    radio_all.type = "radio";
+    radio_all.classList.add("form-check-input");
+    radio_all.name = "status";
+    radio_all.id = "status_search_ALL";
+    radio_all.value = "ALL";
+    radio_all.checked = true;
+    let label_all = document.createElement("label");
+    label_all.setAttribute("for", "status_search_ALL");
+    label_all.classList.add("form-check-label");
+    label_all.innerHTML = "All entries";
+    wrap_all.appendChild(radio_all);
+    wrap_all.appendChild(label_all);
+    search_radios.appendChild(wrap_all);
+
+    for([key, data] of Object.entries(char_defs)) {
+        //wrappers creation
+        let wrap_form = document.createElement("div");
+        wrap_form.classList.add("form-check");
+        let wrap_search = wrap_form.cloneNode();
+        wrap_search.classList.add("form-check-inline");
+
+        //inputs
+        let id_form = "status_form_"+data.key;
+        let id_search = "status_search_"+data.key;
+        let input_form = document.createElement("input");
+        input_form.type = "radio";
+        input_form.classList.add("form-check-input");
+        input_form.value = data.key;
+        input_form.name = "status";
+        let input_search = input_form.cloneNode();
+        //overcharge IDs
+        if(data.key == char_def_defaut) input_form.checked = true;
+        input_form.id = id_form;
+        input_search.id = id_search;
+
+        //labels
+        let label_form = document.createElement("label");
+        label_form.classList.add("form-check-label", "text-"+data.color);
+        label_form.innerHTML = data.str;
+        let label_search = label_form.cloneNode(true);
+        //overcharge IDs/for
+        label_form.setAttribute("for", id_form);
+        label_search.setAttribute("for", id_search);
+
+        let badge = document.createElement("span");
+        badge.classList.add("badge", "text-bg-"+data.color, "ms-1");
+        badge.innerHTML = 0;
+        badge.setAttribute("data-statut-badge", data.key);
+        label_search.appendChild(badge);
+        label_search.classList.add("small");
+
+        wrap_form.appendChild(input_form);
+        wrap_form.appendChild(label_form);
+
+        wrap_search.appendChild(input_search);
+        wrap_search.appendChild(label_search);
+
+        form_radios.appendChild(wrap_form);
+        search_radios.appendChild(wrap_search);
+    }
+}
+
+//Stores character into storage
+const storeChar = () => {
+    let ids = [];
+    let newchar = (fetchval("id") == "");
+
+    if(!newchar) {
+        exeStore(fetchval("id"));
+    }
+    else {
+        let str = string_to_slug(fetchval("name"));
+        storage.transaction([STORENAME]).objectStore(STORENAME).getAll().onsuccess = (evt) => {
+            evt.target.result.forEach(elem => {
+                ids.push(elem.id);
+            });
+            elemid = genID(str, ids);
+            exeStore(elemid);
+        };
+    }
+};
+
+const genID = (str, ids) => {
+    let nb = 0;
+    let final = "" + str;
+    while(ids.includes(final)) {
+        nb++;
+        final = "" + str + nb;
+    }
+    return final;
+};
+
+const exeStore = (elemid) => {
+    let data = {
+        id: elemid,
+        name: fetchval("name"),
+        location: fetchval("location"),
+        description: fetchval("description"),
+        status: fetchval("status"),
+        img: saveImage(fetchval("imgstring")),
+    }
+    storage.setItem(elemid, data);
+};
+
+//fetches the value of an element of the form
+const fetchval = (entry) => {
+    //Need to find the correct option for status
+    if(entry == "status") {
+        let val = null;
+        theform.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) val = elem.value; return true; });
+        return val;
+    }
+
+    let elem = theform.querySelector("[name='"+entry+"']");
+    return (elem) ? elem.value : null;
+};
+
+//Loads a character into the form
+const loadChar = (id) => {
+    storage.getItem(id);
+}
+//fills with character info
+const fillForm = (char) => {
+    if(char) {
+        let data = char; //@TODO cleanup
+        let frame = document.querySelector("#char-portrait");
+        document.querySelector(".formtitle").innerHTML = "Edit entry";
+        document.querySelector(".btnicon").innerHTML = "<i class='bx bx-cog'></i>";
+        document.querySelector(".btntxt").innerHTML = "Edit entry";
+        theform.querySelector("input[name='id']").value = data["id"];
+        theform.querySelector("input[name='imgstring']").value = loadImage(data["img"]);
+        theform.querySelector("input[name='name']").value = data["name"];
+        theform.querySelector("input[name='location']").value = data["location"];
+        theform.querySelector("textarea[name='description']").value = data["description"];
+        form_radios.querySelectorAll("input[type='radio']").forEach(elem => elem.checked = (elem.value == data["status"]));
+        theform.querySelector("button[data-action='reset-form']").classList.remove("visually-hidden");
+
+        //Character portrait handling
+        if(data["img"] != "") {
+            let portrait = createPortrait(data["img"], null);
+            frame.innerHTML = "";
+            frame.appendChild(portrait);
+        }
+        else {
+            frame.innerHTML = "<i class='bx bx-image-add bx-lg'></i>";
+        }
+    }
+};
+
+const updateCounters = () => {
+    for([key, val] of Object.entries(character_numbers)) {
+        document.querySelector(".badge[data-statut-badge='"+key+"']").innerHTML = val;
+    }
+};
+
+//Refreshs the character list
+const displayChars = () => {
+    for([key, val] of Object.entries(character_numbers)) {
+        character_numbers[key] = 0;
+    }
+    retrieveList();
+};
+
+//Retrieves character list in alphabetical order with decoded data
+const retrieveList = () => {
+    //Empty the global list
+    character_list = [];
+    //transaction to fetch the data in DB
+    let store = storage.transaction([STORENAME]).objectStore(STORENAME);
+    store.openCursor().onsuccess = (event) => {
+        const cursor = event.target.result;
+        //while we have data
+        if(cursor) {
+            character_list.push(cursor.value);
+            cursor.continue();
+        }
+        //End of data, display the list
+        else {
+            displayList();
+        }
+    }
+};
+
+const displayList = () => {
+    thelist.innerHTML = "";
+    let nb = 0;
+
+    //search info
+    let search_val = thesearch.value;
+    let reg = (search_val != "") ? new RegExp(search_val.toLowerCase(), "gi") : null; //regular exp to match
+    let status_val = null;
+    search_radios.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) status_val = elem.value; }); //chosen status
+    character_list.sort(sortName());
+    if(character_list.length == 0) {
+        thelist.innerHTML = "<p class='alert alert-warning'><strong>No entry found</strong><br>Get to work Endy!</p>";
+    }
+    else {
+        //loop on characters
+        character_list.forEach(data => {
+            character_numbers[data["status"]] += 1;
+            let select = true; //by default the character will be displayed
+            if(reg !== null && !data["name"].toLowerCase().match(reg)) select = false; //unless they don't match the search
+            if(status_val != "" && status_val != "ALL" && data["status"] != status_val) select = false; //unless they don't match status 
+            if(select) {
+                nb++;
+                charFrame(data);
+            }
+        });
+        if(nb == 0) {
+            thelist.innerHTML = "<p class='alert alert-warning'><strong>No match found</strong></p>";
+        }
+    }
+    updateCounters();
+};
+
+//sorts on a property
+const sortName = () => {  
+   return function(a,b){  
+      if(a["name"].toLowerCase() > b["name"].toLowerCase())  
+         return 1;  
+      else if(a["name"].toLowerCase() < b["name"].toLowerCase())  
+         return -1;  
+  
+      return 0;  
+   }  
+};
+
+//Display a character
+const charFrame = data => {
+    let def = null;
+    //loop on defs to find the correct one
+    for([defkey, defdata] of Object.entries(char_defs)) {
+        if(defdata.key == data["status"]) def = defdata;
+    }
+
+    //Frame wrapper
+    let wrapper = document.createElement("div");
+    wrapper.classList.add("char-frame", "mb-3", "row");
+
+    //Character portrait
+    let col_portrait = document.createElement("div");
+    col_portrait.classList.add("col", "flex-grow-0");
+    if(data["img"] == "") {
+        col_portrait.innerHTML = "<div class='suiko-width'><i class='bx bx-image-alt bx-lg'></i></div>";
+    }
+    else {
+        let img = createPortrait(data["img"], def);
+        col_portrait.innerHTML = "";
+        col_portrait.appendChild(img);
+    }
+    wrapper.appendChild(col_portrait);
+
+    //Character info
+    let col = document.createElement("div");
+    col.classList.add("col", "flex-grow-1");
+    
+    //Char name
+    let div = document.createElement("h3");
+    div.classList.add("suiko-title");
+    div.innerHTML = data["name"];
+    //Edit button
+    let btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("btn", "btn-outline-info", "btn-sm", "ms-2");
+    btn.setAttribute("data-action", "edit-character");
+    btn.setAttribute("data-id", data["id"]);
+    btn.innerHTML = "<i class='bx bx-pencil'></i>";
+    div.appendChild(btn);
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("btn", "btn-outline-danger", "btn-sm", "ms-2");
+    btn.setAttribute("data-action", "delete-character");
+    btn.setAttribute("data-id", data["id"]);
+    btn.innerHTML = "<i class='bx bx-x'></i>";
+    div.appendChild(btn);
+    col.appendChild(div);
+
+    //Character status
+    div = document.createElement("div");
+    if(def == null) { //no definition found, wtf?
+        div.innerHTML = "?????";
+    }
+    else {
+        div.classList.add("text-"+def.color);
+        div.innerHTML = def.str;
+    }
+    col.appendChild(div);
+
+    //Character location
+    div = document.createElement("div");
+    div.innerHTML = data["location"];
+    col.appendChild(div);
+
+    //Character description
+    div = document.createElement("pre");
+    div.innerHTML = data["description"];
+    col.appendChild(div);
+
+    wrapper.appendChild(col);
+    thelist.appendChild(wrapper);
+};
+
+async function pasteImage() {
+    const items = await navigator.clipboard.read()
+        .catch(error => { console.log(error); });
+    for(let item of items) {
+        for(let type of item.types) {
+            if(type.startsWith("image/")) {
+                item.getType(type).then(blob => {
+                    let reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        let data = reader.result;
+                        theform.querySelector("input[name='imgstring']").value = data;
+                        let img = createPortrait(data, null);
+                        let formimg = img.cloneNode(true);
+                        img.style.width = "200px !important";
+                        img.style.height = "200px !important";
+                        let targ = modal.querySelector(".modal-body .display-portrait");
+                        targ.innerHTML = "";
+                        targ.appendChild(img);
+                        let formtarg = document.querySelector("#char-portrait");
+                        formtarg.innerHTML = "";
+                        formtarg.appendChild(formimg);
+                    }
+                });
+            }
+        }
+    }
+};
+
+const createPortrait = (imgstring, status) => {
+    let img = document.createElement("div");
+    imgdata = loadImage(imgstring);
+    img.style.backgroundImage = "url(" + imgdata + ")";
+    img.classList.add("suiko-portrait");
+    if(status != null) {
+        img.classList.add("border-"+status.color);
+    }
+    img.innerHTML = "&nbsp;";
+
+    return img;
+};
+
+const deleteChar = (id) => {
+    storage.transaction([STORENAME]).objectStore(STORENAME).get(id).onsuccess = event => {
+        data = event.target.result;
+        if(confirm("Do you really wish to delete " + data.name + "? :(")) {
+            storage.removeItem(id);
+        }
+    };
+};
+
+const genBackupData = () => {
+    let bdata = {};
+    for([key, value] of Object.entries(storage)) {
+        parsed = JSON.parse(value);
+        parsed["img"] = loadImage(parsed["img"]);
+        bdata[key] = JSON.stringify(parsed);
+    }
+    return JSON.stringify(bdata, undefined, 2); 
+};
+
+const handleBackup = () => {
+    let type = frm_backup.querySelector("input[name='current_type']").value;
+    if(type == "backup") {
+        doBackup();
+    }
+    if(type == "restore") {
+        doRestore();
+    }
+};
+
+const doBackup = () => {
+    backup_field.select();
+    document.execCommand("copy");
+};
+
+const doRestore = () => {
+    let str = backup_field.value;
+    let json = null;
+    try {
+        json = JSON.parse(str);
+    }
+    catch(error) {
+        json = null;
+        alert("The data couldn't be parsed, please check that it has been correctly pasted");
+    }
+    if(json !== null) {
+        window.localStorage.clear();
+        for([key, value] of Object.entries(json)) {
+            //update image from old save for the new storage way
+            data = JSON.parse(value);
+            data["img"] = saveImage(data["img"]);
+            value = JSON.stringify(data);
+            window.localStorage.setItem(key, value);
+        };
+        displayChars();
+    }
+};
+
+/**
+ * Migrates OG data to new DB
+ */
+const updateStorage = ()=>{
+    if(window.localStorage.length > 0) {
+        let loader = document.createElement("div");
+        loader.style.zIndex = 500;
+        loader.classList.add("bg-dark", "position-absolute", "top-0", "bottom-0", "start-0", "end-0", "d-flex", "justify-content-center", "align-items-center");
+        loader.id = "migrating";
+        loader.innerHTML = "<div class='h1'><i class='bx bx-loader-circle bx-spin'></i><br>Hang tight !<br>Migrating data...</div>";
+        document.querySelector("body").appendChild(loader);
+        for([key, value] of Object.entries(window.localStorage)) {
+            let data = JSON.parse(value);
+            data["img"] = loadImage(data["img"]);
+            let req = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME).add(data);
+            req.onsuccess = (evt) => {
+                try {
+                    window.localStorage.removeItem(data.id);
+                }
+                catch(error) {
+                    console.log(error);
+                }
+            }
+            req.onerror = (evt) => {
+                console.log(key, data.id, "wtf");
+            }
+        }
+        document.querySelector("#migrating").remove();
+    }
+};
+
+const string_to_slug = (str) => {
+    str = str.replace(/^\s+|\s+$/g, ''); // trim
+    str = str.toLowerCase();
+  
+    // remove accents, swap ñ for n, etc
+    var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+    var to   = "aaaaeeeeiiiioooouuuunc------";
+    for (var i=0, l=from.length ; i<l ; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
+
+    str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+        .replace(/\s+/g, '-') // collapse whitespace and replace by -
+        .replace(/-+/g, '-'); // collapse dashes
+
+    return str;
+}
+
+const dofake = (nb) => {
+    let store = storage.transaction([STORENAME], "readwrite").objectStore(STORENAME)
+    let finder = store.get("fake");
+    finder.onsuccess = (evt) => {
+        let obj = evt.target.result;
+        let neo = null;
+        for(let i=1; i <= nb; i++) {
+            neo = {
+                id: "" + obj.id + i,
+                name: "" + obj.name + " #" + i,
+                location: obj.location,
+                description: obj.description,
+                status: obj.status,
+                img: obj.img,
+            };
+            store.add(neo);
+        }
+        displayChars();
+    }
+};
+        </script>
+    </body>
+</html>
