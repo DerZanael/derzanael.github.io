@@ -124,10 +124,10 @@ pre {
                 </div>
             </div>
 
-            <div class="w-100 d-flex justify-content-center align-items-center py-3 gap-2">
+            <!-- <div class="w-100 d-flex justify-content-center align-items-center py-3 gap-2">
                 <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="backup" class="btn btn-success"><i class="bx bx-save"></i> Backup</button>
                 <button type="button" data-bs-toggle="modal" data-bs-target="#modal-backup" data-action="restore" class="btn btn-warning"><i class="bx bx-cloud-upload"></i> Restore</button>
-            </div>
+            </div> -->
         </div>
 
         <div class="modal" id="modal-portrait" tabindex="-1">
@@ -366,19 +366,19 @@ document.addEventListener("DOMContentLoaded", evt=>{
         handleBackup();
     });
 
-    backup_button.addEventListener("click", clevt=>{
-        frm_backup.querySelector("input[name='current_type']").value = "backup";
-        backup_field.value = genBackupData();
-        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-copy'></i>";
-        modal_backup_button.querySelector(".btntxt").innerHTML = "Copy";
-    });
+    // backup_button.addEventListener("click", clevt=>{
+    //     frm_backup.querySelector("input[name='current_type']").value = "backup";
+    //     backup_field.value = genBackupData();
+    //     modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-copy'></i>";
+    //     modal_backup_button.querySelector(".btntxt").innerHTML = "Copy";
+    // });
 
-    restore_button.addEventListener("click", clevt=>{
-        frm_backup.querySelector("input[name='current_type']").value = "restore";
-        backup_field.value = null;
-        modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-cog'></i>";
-        modal_backup_button.querySelector(".btntxt").innerHTML = "Restore";
-    });
+    // restore_button.addEventListener("click", clevt=>{
+    //     frm_backup.querySelector("input[name='current_type']").value = "restore";
+    //     backup_field.value = null;
+    //     modal_backup_button.querySelector(".icon").innerHTML = "<i class='bx bx-cog'></i>";
+    //     modal_backup_button.querySelector(".btntxt").innerHTML = "Restore";
+    // });
 });
 
 //Image compression
@@ -771,53 +771,53 @@ const deleteChar = (id) => {
     };
 };
 
-const genBackupData = () => {
-    let bdata = {};
-    for([key, value] of Object.entries(storage)) {
-        parsed = JSON.parse(value);
-        parsed["img"] = loadImage(parsed["img"]);
-        bdata[key] = JSON.stringify(parsed);
-    }
-    return JSON.stringify(bdata, undefined, 2); 
-};
+// const genBackupData = () => {
+//     let bdata = {};
+//     for([key, value] of Object.entries(storage)) {
+//         parsed = JSON.parse(value);
+//         parsed["img"] = loadImage(parsed["img"]);
+//         bdata[key] = JSON.stringify(parsed);
+//     }
+//     return JSON.stringify(bdata, undefined, 2); 
+// };
 
-const handleBackup = () => {
-    let type = frm_backup.querySelector("input[name='current_type']").value;
-    if(type == "backup") {
-        doBackup();
-    }
-    if(type == "restore") {
-        doRestore();
-    }
-};
+// const handleBackup = () => {
+//     let type = frm_backup.querySelector("input[name='current_type']").value;
+//     if(type == "backup") {
+//         doBackup();
+//     }
+//     if(type == "restore") {
+//         doRestore();
+//     }
+// };
 
-const doBackup = () => {
-    backup_field.select();
-    document.execCommand("copy");
-};
+// const doBackup = () => {
+//     backup_field.select();
+//     document.execCommand("copy");
+// };
 
-const doRestore = () => {
-    let str = backup_field.value;
-    let json = null;
-    try {
-        json = JSON.parse(str);
-    }
-    catch(error) {
-        json = null;
-        alert("The data couldn't be parsed, please check that it has been correctly pasted");
-    }
-    if(json !== null) {
-        window.localStorage.clear();
-        for([key, value] of Object.entries(json)) {
-            //update image from old save for the new storage way
-            data = JSON.parse(value);
-            data["img"] = saveImage(data["img"]);
-            value = JSON.stringify(data);
-            window.localStorage.setItem(key, value);
-        };
-        displayChars();
-    }
-};
+// const doRestore = () => {
+//     let str = backup_field.value;
+//     let json = null;
+//     try {
+//         json = JSON.parse(str);
+//     }
+//     catch(error) {
+//         json = null;
+//         alert("The data couldn't be parsed, please check that it has been correctly pasted");
+//     }
+//     if(json !== null) {
+//         window.localStorage.clear();
+//         for([key, value] of Object.entries(json)) {
+//             //update image from old save for the new storage way
+//             data = JSON.parse(value);
+//             data["img"] = saveImage(data["img"]);
+//             value = JSON.stringify(data);
+//             window.localStorage.setItem(key, value);
+//         };
+//         displayChars();
+//     }
+// };
 
 /**
  * Migrates OG data to new DB
