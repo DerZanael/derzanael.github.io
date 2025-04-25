@@ -612,7 +612,7 @@ const displayList = () => {
     search_radios.querySelectorAll("input[type='radio']").forEach(elem => { if(elem.checked) status_val = elem.value; }); //chosen status
     character_list.sort(sortName());
     if(character_list.length == 0) {
-        thelist.innerHTML = "<p class='alert alert-warning'><strong>No entry found</strong><br>Get to work Endy!</p>";
+        thelist.innerHTML = "<p class='alert alert-warning'><strong>No entry found</strong><br>Get to work!</p>";
     }
     else {
         //loop on characters
