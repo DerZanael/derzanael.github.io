@@ -232,7 +232,7 @@ request.onupgradeneeded = event => {
     dbstore.createIndex("name", "name", { unique: false });
     dbstore.createIndex("location", "location", { unique: false });
     dbstore.transaction.oncomplete = (evt) => {
-        const characterStore = db.transaction(STORENAME, "readwrite").dbstore(STORENAME);
+        const characterStore = db.transaction(STORENAME, "readwrite").objectStore(STORENAME);
     }
 };
 //page elements
